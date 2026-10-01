@@ -113,7 +113,7 @@ main:has(.result.show) #actions,main:has(.result.show) #msg:empty,main:has(#conf
       <h2 id="resTitle"></h2>
       <p class="muted" id="resSub"></p>
     </div>
-    <textarea class="share" id="shareText" rows="3" readonly aria-label="Resultado para compartir"></textarea>
+    <textarea class="share" id="shareText" rows="4" readonly aria-label="Resultado para compartir"></textarea>
     <div class="actions">
       <button class="btn primary" id="shareBtn">
         <svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="18" cy="5" r="3"/><circle cx="6" cy="12" r="3"/><circle cx="18" cy="19" r="3"/><path d="M8.6 10.5l6.8-4M8.6 13.5l6.8 4"/></svg>
@@ -158,6 +158,9 @@ main:has(.result.show) #actions,main:has(.result.show) #msg:empty,main:has(#conf
 </div>
 
 <script>
+// Public address of the game, appended to the shared result. Change it here if the site moves.
+const SITE_URL = 'https://mcerdeira.github.io/daily-game/';
+
 const N = 5, CELLS = N * N;
 const ORTHO = Array.from({ length: CELLS }, (_, i) => {
   const r = Math.floor(i / N), c = i % N, out = [];
@@ -553,7 +556,7 @@ function dayNumber(y, m, d) {
   function shareText(R) {
     const stations = '🟩'.repeat(R.got) + '🟥'.repeat(R.missing);
     const cr = R.cross === 0 ? 'Sin cruces ✨' : '✖️'.repeat(Math.min(R.cross, 8));
-    return `${practice ? 'Gol práctica' : 'Gol #' + num} ⚽ ${P.diff}\n${stations}  ${cr}\nPuntaje ${R.score}/100 · intento ${resets + 1}`;
+    return `${practice ? 'Gol práctica' : 'Gol #' + num} ⚽ ${P.diff}\n${stations}  ${cr}\nPuntaje ${R.score}/100 · intento ${resets + 1}\n${SITE_URL}`;
   }
 
   function finish(fresh) {
