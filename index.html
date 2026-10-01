@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-<title>Vías — puzle diario</title>
+<title>Gol — puzle diario</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,700;9..144,900&display=swap" rel="stylesheet">
@@ -12,24 +12,24 @@
   box-sizing:border-box;
   padding-top:env(safe-area-inset-top,0px);
   padding-bottom:env(safe-area-inset-bottom,0px);
-  --bg:#e2eae5; --fg:#16232b; --muted:#5a6b66; --card:#f4f8f5; --line:rgba(22,35,43,.15);
-  --cell:#f4f8f5; --grid:#c8d6ce; --rock:#a7b4bd; --rock2:#7f8f9b;
-  --rail:#22303a; --slat:#d9a441; --head:#f4f8f5;
-  --start:#2e9e5b; --goal:#d1493f; --paper:#ffffff; --ink:#22303a; --good:#2e9e5b; --bad:#d1493f; --ring:#2e9e5b;
+  --bg:#e4eee2; --fg:#12301d; --muted:#556b5c; --card:#f5faf4; --line:rgba(18,48,29,.16);
+  --pitch1:#5cb868; --pitch2:#4fa85b; --lines:rgba(255,255,255,.5);
+  --rival:#d9433a; --mate:#1f6fe0; --skin:#f0c8a3;
+  --good:#1f9d55; --bad:#d9433a; --ring:#1f9d55;
 }
 @media (prefers-color-scheme:dark){
   :root:not([data-theme="light"]){
-    --bg:#0c1512; --fg:#e4ede8; --muted:#8ea39b; --card:#15211d; --line:rgba(228,237,232,.16);
-    --cell:#15211d; --grid:#24362f; --rock:#2c3b45; --rock2:#485b67;
-    --rail:#dfe8e3; --slat:#c98f2b; --head:#15211d;
-    --start:#3fbf78; --goal:#e5645a; --paper:#0c1512; --ink:#dfe8e3; --good:#3fbf78; --bad:#e5645a; --ring:#3fbf78;
+    --bg:#09160d; --fg:#e6f1e8; --muted:#8fa896; --card:#12221a; --line:rgba(230,241,232,.16);
+    --pitch1:#2c7a3b; --pitch2:#256b33; --lines:rgba(255,255,255,.28);
+    --rival:#e5564d; --mate:#4a8cf0; --skin:#f0c8a3;
+    --good:#3fbf78; --bad:#e5564d; --ring:#3fbf78;
   }
 }
 :root[data-theme="dark"]{
-  --bg:#0c1512; --fg:#e4ede8; --muted:#8ea39b; --card:#15211d; --line:rgba(228,237,232,.16);
-  --cell:#15211d; --grid:#24362f; --rock:#2c3b45; --rock2:#485b67;
-  --rail:#dfe8e3; --slat:#c98f2b; --head:#15211d;
-  --start:#3fbf78; --goal:#e5645a; --paper:#0c1512; --ink:#dfe8e3; --good:#3fbf78; --bad:#e5645a; --ring:#3fbf78;
+  --bg:#09160d; --fg:#e6f1e8; --muted:#8fa896; --card:#12221a; --line:rgba(230,241,232,.16);
+  --pitch1:#2c7a3b; --pitch2:#256b33; --lines:rgba(255,255,255,.28);
+  --rival:#e5564d; --mate:#4a8cf0; --skin:#f0c8a3;
+  --good:#3fbf78; --bad:#e5564d; --ring:#3fbf78;
 }
 *,*::before,*::after{box-sizing:inherit}
 html{scroll-padding-top:env(safe-area-inset-top,0px);-webkit-text-size-adjust:100%}
@@ -54,7 +54,7 @@ h1{font-family:"Fraunces",Georgia,"Times New Roman",serif;font-weight:900;font-s
 svg.board{
   --s:min(calc(100vw - 32px),408px);
   width:var(--s);height:var(--s);display:block;touch-action:none;user-select:none;-webkit-user-select:none;
-  border-radius:8px;border:3px solid var(--fg);background:var(--cell);cursor:pointer;
+  border-radius:8px;border:3px solid var(--fg);background:var(--pitch1);cursor:pointer;
 }
 .actions{display:flex;gap:10px;width:100%}
 button.btn{flex:1;font:inherit;font-weight:600;padding:12px 14px;border-radius:10px;cursor:pointer;border:2px solid var(--fg);background:transparent;color:var(--fg)}
@@ -64,7 +64,7 @@ button.btn:disabled{opacity:.35;cursor:default}
 .confirm[hidden],.actions[hidden]{display:none}
 .confirm p{margin:0;font-size:15px}
 .practice{width:100%;display:flex;flex-direction:column;gap:10px;padding-top:14px;border-top:1px solid var(--line)}
-.practice[hidden],#back[hidden]{display:none}
+.practice[hidden],#back[hidden],#solBtn[hidden]{display:none}
 .grid4{display:grid;grid-template-columns:repeat(4,1fr);gap:8px}
 .grid4 .btn{padding:10px 4px;font-size:14px}
 .note{font-size:13px;color:var(--muted);margin:0;text-align:center}
@@ -89,48 +89,49 @@ button.btn:disabled{opacity:.35;cursor:default}
 .card p{margin:0;font-size:15px}
 .legend{list-style:none;margin:0;padding:0;display:flex;flex-direction:column;gap:8px;font-size:15px}
 .legend li{display:flex;align-items:center;gap:12px}
-.legend svg{width:34px;height:34px;flex:none}
+.legend svg{width:46px;height:46px;flex:none;background:var(--pitch1);border-radius:8px}
 .scoring{background:var(--bg);border-radius:10px;padding:10px 12px;font-size:14px}
 </style>
 </head>
 <body>
 <main>
   <header>
-    <h1>Vías</h1>
+    <h1>Gol</h1>
     <div class="meta"><span id="meta"></span><button class="help" id="helpBtn" aria-label="Cómo se juega">?</button></div>
   </header>
-  <p class="rule">Trazá la vía de la <b>salida</b> a la <b>meta</b>, pasando por todas las estaciones y sin cruzarte.</p>
+  <p class="rule">Llevá la pelota de la <b>salida</b> al <b>arco</b>, pasando por todos tus compañeros y sin cruzarte.</p>
 
   <div class="hud">
-    <div class="stat" id="stSt"><span>Estaciones</span><strong id="vSt">0/0</strong></div>
+    <div class="stat" id="stSt"><span>Compañeros</span><strong id="vSt">0/0</strong></div>
     <div class="stat" id="stCr"><span>Cruces</span><strong id="vCr">0</strong></div>
     <div class="stat dim" id="stSc"><span>Puntaje</span><strong id="vSc">100</strong></div>
   </div>
 
   <svg class="board" id="board" viewBox="0 0 500 500" role="application" tabindex="0"
-       aria-label="Tablero de vías. Arrastrá desde la punta de la vía o usá las flechas del teclado."></svg>
+       aria-label="Cancha de 5 por 5. Arrastrá desde la pelota o usá las flechas del teclado."></svg>
   <p class="msg" id="msg"></p>
 
   <div class="confirm" id="confirm" hidden>
     <p id="confirmText"></p>
     <div class="actions">
       <button class="btn" id="keep">Seguir</button>
-      <button class="btn primary" id="finish">Terminar</button>
+      <button class="btn primary" id="finish">Rematar</button>
     </div>
   </div>
   <div class="actions" id="actions">
     <button class="btn" id="clear">Borrar</button>
   </div>
-  <p class="note">Tocar la meta cierra el día y es definitivo. Borrar suma un intento.</p>
+  <p class="note">Patear al arco cierra el día y es definitivo. Borrar suma un intento.</p>
 
   <section class="result" id="result" aria-live="polite">
     <h2 id="resTitle"></h2>
     <p class="big" id="resSub"></p>
     <textarea class="share" id="shareText" rows="4" readonly aria-label="Resultado para compartir"></textarea>
     <button class="btn primary" id="shareBtn">Copiar resultado</button>
+    <button class="btn" id="solBtn" hidden>Ver la solución</button>
     <div class="stats" id="dailyStats">
       <div><strong id="stPlayed">0</strong><span>Jugados</span></div>
-      <div><strong id="stPerfect">0</strong><span>Vías perfectas</span></div>
+      <div><strong id="stPerfect">0</strong><span>Goles perfectos</span></div>
       <div><strong id="stStreak">0</strong><span>Racha</span></div>
     </div>
     <p class="next" id="nextRow">Próximo puzle en <b id="cd">--:--:--</b></p>
@@ -151,16 +152,16 @@ button.btn:disabled{opacity:.35;cursor:default}
 <div class="modal" id="modal" role="dialog" aria-modal="true" aria-labelledby="mTitle">
   <div class="card">
     <h2 id="mTitle">Cómo se juega</h2>
-    <p>Construí una vía de tren de punta a punta, en línea recta y girando en las esquinas.</p>
+    <p>Dibujá el recorrido de la pelota, en línea recta y girando en las esquinas.</p>
     <ul class="legend">
-      <li><svg viewBox="0 0 100 100"><circle cx="50" cy="50" r="40" fill="var(--start)"/><polygon points="40,30 40,70 72,50" fill="#fff"/></svg>Salida: desde acá arranca la vía.</li>
-      <li><svg viewBox="0 0 100 100"><circle cx="50" cy="50" r="40" fill="var(--goal)"/><line x1="40" y1="28" x2="40" y2="72" stroke="#fff" stroke-width="7" stroke-linecap="round"/><polygon points="40,28 72,40 40,52" fill="#fff"/></svg>Meta: tocala para terminar. Es definitivo.</li>
-      <li><svg viewBox="0 0 100 100"><circle cx="50" cy="50" r="30" fill="var(--paper)" stroke="var(--ink)" stroke-width="10"/></svg>Estación: la vía tiene que pasar por todas.</li>
-      <li><svg viewBox="0 0 100 100"><rect x="4" y="4" width="92" height="92" rx="10" fill="var(--rock)"/><polygon points="14,78 38,26 62,78" fill="var(--rock2)"/><polygon points="46,78 66,44 88,78" fill="var(--rock2)"/></svg>Montaña: no se puede pasar.</li>
+      <li><svg viewBox="0 0 100 100" data-ic="ball"></svg>Salida: ahí arranca la pelota.</li>
+      <li><svg viewBox="0 0 100 100" data-ic="goal"></svg>Arco: tocalo para patear. Es definitivo.</li>
+      <li><svg viewBox="0 0 100 100" data-ic="mate"></svg>Compañero: la jugada tiene que pasar por todos.</li>
+      <li><svg viewBox="0 0 100 100" data-ic="cone"></svg><svg viewBox="0 0 100 100" data-ic="rival"></svg>Conos y rivales: no se pueden pasar.</li>
     </ul>
-    <p><b>Para dibujar:</b> arrastrá desde la punta de la vía, o tocá casillas vecinas. Para retroceder, volvé sobre tus pasos o tocá un tramo anterior. Al arrastrar, la vía se frena antes de la meta: entrás tocándola.</p>
+    <p><b>Para dibujar:</b> arrastrá desde la pelota, o tocá casillas vecinas. Para retroceder, volvé sobre tus pasos o tocá un tramo anterior. Al arrastrar, la pelota se frena antes del arco: para patear hay que tocarlo.</p>
     <div class="scoring">
-      <b>Puntaje:</b> arranca en 100. Restás <b>25</b> por cada estación que falta y <b>10</b> por cada cruce (pasar dos veces por la misma casilla). Siempre existe una vía perfecta.
+      <b>Puntaje:</b> arranca en 100. Restás <b>25</b> por cada compañero que falta y <b>10</b> por cada cruce (pasar dos veces por la misma casilla). Siempre existe una jugada perfecta.
     </div>
     <button class="btn primary" id="modalClose">Jugar</button>
   </div>
@@ -320,7 +321,29 @@ function generateWith(seed, level) {
   return fallback;
 }
 
-function generate(dateKey, dow) { return generateWith('vias-v2-' + dateKey, dow); }
+function generate(dateKey, dow) { return generateWith('gol-v1-' + dateKey, dow); }
+
+// First perfect track found (simple path S -> E through every station), or null.
+function findPerfect(S, E, stations, blocked) {
+  const isSt = new Array(CELLS).fill(false);
+  stations.forEach(x => (isSt[x] = true));
+  const seen = new Array(CELLS).fill(false);
+  let found = null;
+  function dfs(cell, left, p) {
+    if (found) return;
+    if (cell === E) { if (left === 0) found = p.slice(); return; }
+    for (const n of ORTHO[cell]) {
+      if (blocked[n] || seen[n]) continue;
+      seen[n] = true; p.push(n);
+      dfs(n, left - (isSt[n] ? 1 : 0), p);
+      p.pop(); seen[n] = false;
+      if (found) return;
+    }
+  }
+  seen[S] = true;
+  dfs(S, stations.length, [S]);
+  return found;
+}
 
 function dayNumber(y, m, d) {
   return Math.round((Date.UTC(y, m, d) - Date.UTC(2026, 8, 30)) / 864e5) + 1;
@@ -343,19 +366,19 @@ function dayNumber(y, m, d) {
     get(k) { try { const v = localStorage.getItem(k); return v ? JSON.parse(v) : null; } catch (e) { return null; } },
     set(k, v) { try { localStorage.setItem(k, JSON.stringify(v)); } catch (e) {} }
   };
-  const SKEY = 'vias2:' + dateKey, TKEY = 'vias1:stats';
+  const SKEY = 'gol1:' + dateKey, TKEY = 'gol1:stats';
 
   // ---- state ----
-  let path = [P.S], resets = 0, done = false, dragging = false, pending = false;
+  let path = [P.S], resets = 0, done = false, dragging = false, pending = false, showSol = false, solPath = null;
 
   const $ = id => document.getElementById(id);
   const svg = $('board'), msg = $('msg');
 
   const head = () => path[path.length - 1];
 
-  function calc() {
+  function calc(p = path) {
     const visits = new Array(CELLS).fill(0);
-    path.forEach(c => visits[c]++);
+    p.forEach(c => visits[c]++);
     let cross = 0; visits.forEach(v => { if (v > 1) cross += v - 1; });
     const got = P.stations.filter(s => visits[s] > 0).length;
     const missing = P.stations.length - got;
@@ -365,42 +388,66 @@ function dayNumber(y, m, d) {
 
   // ---- drawing ----
   const ctr = c => [(c % N) * 100 + 50, Math.floor(c / N) * 100 + 50];
+
+  // ---- pitch drawing helpers (each draws inside a 100x100 cell with origin x,y) ----
+  const shadow = (x, y, rx) => `<ellipse cx="${x+50}" cy="${y+82}" rx="${rx}" ry="7" fill="rgba(0,0,0,.2)"/>`;
+  const fig = (x, y, jersey) => shadow(x, y, 24) +
+    `<path d="M${x+24},${y+82} C${x+24},${y+58} ${x+36},${y+52} ${x+50},${y+52} C${x+64},${y+52} ${x+76},${y+58} ${x+76},${y+82} Z" fill="${jersey}"/>` +
+    `<circle cx="${x+50}" cy="${y+36}" r="15" fill="var(--skin)"/>`;
+  const cone = (x, y) => shadow(x, y, 26) +
+    `<rect x="${x+24}" y="${y+72}" width="52" height="10" rx="3" fill="#e65f00"/>` +
+    `<polygon points="${x+50},${y+16} ${x+72},${y+74} ${x+28},${y+74}" fill="#ff7a1a"/>` +
+    `<polygon points="${x+43},${y+38} ${x+57},${y+38} ${x+62},${y+54} ${x+38},${y+54}" fill="#fff"/>`;
+  const mate = (x, y, v) => fig(x, y, 'var(--mate)') +
+    `<circle cx="${x+50}" cy="${y+50}" r="43" fill="none" stroke="${v ? 'var(--good)' : '#fff'}" stroke-width="5"/>` +
+    (v ? `<circle cx="${x+80}" cy="${y+20}" r="15" fill="var(--good)" stroke="#fff" stroke-width="3"/>` +
+         `<polyline points="${x+73},${y+20} ${x+78},${y+26} ${x+88},${y+14}" fill="none" stroke="#fff" stroke-width="4.5" stroke-linecap="round" stroke-linejoin="round"/>` : '');
+  const ball = (cx, cy, r) => {
+    const pt = (k, rad) => { const a = (-90 + 72 * k) * Math.PI / 180; return [cx + rad * Math.cos(a), cy + rad * Math.sin(a)]; };
+    let g = `<circle cx="${cx}" cy="${cy}" r="${r}" fill="#fff" stroke="#1c1c1c" stroke-width="${Math.max(2.5, r / 6)}"/>`;
+    g += `<polygon points="${[0, 1, 2, 3, 4].map(k => pt(k, r * .42).join(',')).join(' ')}" fill="#1c1c1c"/>`;
+    for (let k = 0; k < 5; k++) { const p = pt(k, r * .42), q = pt(k, r * .86);
+      g += `<line x1="${p[0]}" y1="${p[1]}" x2="${q[0]}" y2="${q[1]}" stroke="#1c1c1c" stroke-width="${Math.max(2, r / 9)}" stroke-linecap="round"/>`; }
+    return g;
+  };
+  const goalIcon = (x, y) => {
+    const gx = x + 10, gy = y + 24, gw = 80, gh = 54;
+    let g = `<rect x="${gx}" y="${gy}" width="${gw}" height="${gh}" fill="rgba(255,255,255,.22)"/>`;
+    for (let i = 1; i < 6; i++) g += `<line x1="${gx + gw * i / 6}" y1="${gy}" x2="${gx + gw * i / 6}" y2="${gy + gh}" stroke="#fff" stroke-opacity=".6" stroke-width="2"/>`;
+    for (let i = 1; i < 4; i++) g += `<line x1="${gx}" y1="${gy + gh * i / 4}" x2="${gx + gw}" y2="${gy + gh * i / 4}" stroke="#fff" stroke-opacity=".6" stroke-width="2"/>`;
+    return g + `<rect x="${gx}" y="${gy}" width="${gw}" height="${gh}" fill="none" stroke="#fff" stroke-width="7" stroke-linejoin="round"/>`;
+  };
+  const spot = (cx, cy) => `<circle cx="${cx}" cy="${cy}" r="31" fill="none" stroke="#fff" stroke-width="5" opacity=".9"/>`;
+
   function render() {
-    const R = calc(); let s = '';
+    const view = (showSol && solPath) ? solPath : path, hd = view[view.length - 1];
+    const R = calc(view); let s = '';
     for (let c = 0; c < CELLS; c++) {
       const x = (c % N) * 100, y = Math.floor(c / N) * 100;
-      s += `<rect x="${x}" y="${y}" width="100" height="100" fill="${P.blocked[c] ? 'var(--rock)' : 'var(--cell)'}" stroke="var(--grid)" stroke-width="2"/>`;
-      if (P.blocked[c]) {
-        s += `<polygon points="${x+16},${y+78} ${x+40},${y+26} ${x+64},${y+78}" fill="var(--rock2)"/>` +
-             `<polygon points="${x+46},${y+78} ${x+66},${y+44} ${x+88},${y+78}" fill="var(--rock2)"/>`;
-      }
+      s += `<rect x="${x}" y="${y}" width="100" height="100" fill="${(c % N) % 2 ? 'var(--pitch2)' : 'var(--pitch1)'}" stroke="var(--lines)" stroke-width="2"/>`;
     }
-    // track
-    const pts = path.map(c => ctr(c).join(',')).join(' ');
-    if (path.length > 1) {
-      s += `<polyline points="${pts}" fill="none" stroke="var(--rail)" stroke-width="26" stroke-linejoin="round" stroke-linecap="round"/>`;
-      s += `<polyline points="${pts}" fill="none" stroke="var(--slat)" stroke-width="26" stroke-linejoin="round" stroke-dasharray="4 14" stroke-linecap="butt"/>`;
+    { const [cx, cy] = ctr(P.S); s += spot(cx, cy); }
+    s += goalIcon((P.E % N) * 100, Math.floor(P.E / N) * 100);
+    for (let c = 0; c < CELLS; c++) if (P.blocked[c]) {
+      const x = (c % N) * 100, y = Math.floor(c / N) * 100;
+      s += ((c + P.S + P.E) % 2) ? cone(x, y) : fig(x, y, 'var(--rival)');
     }
-    // stations, start, goal
-    P.stations.forEach(c => {
-      const [cx, cy] = ctr(c), v = R.visits[c] > 0;
-      s += `<circle cx="${cx}" cy="${cy}" r="24" fill="${v ? 'var(--good)' : 'var(--paper)'}" stroke="${v ? 'var(--good)' : 'var(--ink)'}" stroke-width="7"/>`;
-      if (v) s += `<polyline points="${cx-10},${cy} ${cx-3},${cy+8} ${cx+11},${cy-8}" fill="none" stroke="#fff" stroke-width="6" stroke-linecap="round" stroke-linejoin="round"/>`;
-    });
-    { const [cx, cy] = ctr(P.S);
-      s += `<circle cx="${cx}" cy="${cy}" r="29" fill="var(--start)"/><polygon points="${cx-9},${cy-17} ${cx-9},${cy+17} ${cx+19},${cy}" fill="#fff"/>`; }
-    { const [cx, cy] = ctr(P.E);
-      s += `<circle cx="${cx}" cy="${cy}" r="29" fill="var(--goal)"/><line x1="${cx-9}" y1="${cy-17}" x2="${cx-9}" y2="${cy+17}" stroke="#fff" stroke-width="6" stroke-linecap="round"/><polygon points="${cx-9},${cy-17} ${cx+18},${cy-7} ${cx-9},${cy+3}" fill="#fff"/>`; }
+    // dotted route of the ball
+    const pts = view.map(c => ctr(c).join(',')).join(' ');
+    const dotCol = showSol ? '#ffd54a' : '#fff';
+    if (view.length > 1) {
+      s += `<polyline points="${pts}" fill="none" stroke="rgba(0,0,0,.3)" stroke-width="15" stroke-linejoin="round" stroke-linecap="round" stroke-dasharray="0 22" transform="translate(0,2.5)"/>`;
+      s += `<polyline points="${pts}" fill="none" stroke="${dotCol}" stroke-width="11" stroke-linejoin="round" stroke-linecap="round" stroke-dasharray="0 22"/>`;
+    }
+    P.stations.forEach(c => s += mate((c % N) * 100, Math.floor(c / N) * 100, R.visits[c] > 0));
     // crossings
     R.visits.forEach((v, c) => {
       if (v > 1) { const [cx, cy] = ctr(c);
         s += `<circle cx="${cx}" cy="${cy}" r="20" fill="var(--bad)" stroke="#fff" stroke-width="4"/><path d="M${cx-8},${cy-8} L${cx+8},${cy+8} M${cx+8},${cy-8} L${cx-8},${cy+8}" stroke="#fff" stroke-width="6" stroke-linecap="round"/>`; }
     });
-    // head
-    if (!done && head() !== P.E) {
-      const [cx, cy] = ctr(head());
-      s += `<circle cx="${cx}" cy="${cy}" r="${head() === P.S ? 36 : 17}" fill="${head() === P.S ? 'none' : 'var(--head)'}" stroke="${head() === P.S ? 'var(--start)' : 'var(--rail)'}" stroke-width="6"${head() === P.S ? ' stroke-dasharray="6 8"' : ''}/>`;
-    }
+    // the ball sits at the head of the route (inside the goal once you shoot)
+    if (hd === P.E) { const [cx, cy] = ctr(P.E); s += ball(cx, cy + 6, 15); }
+    else { const [cx, cy] = ctr(hd); s += ball(cx, cy, 21); }
     svg.innerHTML = s;
 
     // HUD
@@ -416,10 +463,11 @@ function dayNumber(y, m, d) {
     $('actions').hidden = pending;
 
     if (done || pending) msg.textContent = '';
-    else if (path.length === 1) msg.textContent = 'Arrastrá desde la salida o tocá una casilla vecina.';
-    else if (nearE && R.score === 100) msg.textContent = 'Vía perfecta. Tocá la meta para cerrarla.';
-    else if (nearE) msg.textContent = `Estás al lado de la meta. Si la tocás, terminás con ${R.score} puntos.`;
+    else if (path.length === 1) msg.textContent = 'Arrastrá la pelota o tocá una casilla vecina.';
+    else if (nearE && R.score === 100) msg.textContent = 'Jugada perfecta. Tocá el arco para patear.';
+    else if (nearE) msg.textContent = `Estás al lado del arco. Si lo tocás, pateás y terminás con ${R.score} puntos.`;
     else msg.textContent = '';
+    if (showSol) msg.textContent = 'Así se resolvía: esta es una jugada perfecta.';
   }
 
   function persist() { if (!practice) store.set(SKEY, { path, resets, done }); }
@@ -450,9 +498,9 @@ function dayNumber(y, m, d) {
     if (R.score === 100) { finalize(); return; }
     pending = true; dragging = false;
     const parts = [];
-    if (R.missing) parts.push(R.missing === 1 ? 'te falta 1 estación' : `te faltan ${R.missing} estaciones`);
+    if (R.missing) parts.push(R.missing === 1 ? 'te falta 1 compañero' : `te faltan ${R.missing} compañeros`);
     if (R.cross) parts.push(R.cross === 1 ? 'hay 1 cruce' : `hay ${R.cross} cruces`);
-    $('confirmText').textContent = `${parts.join(' y ').replace(/^./, c => c.toUpperCase())}. Terminar ahora da ${R.score} puntos y no se puede cambiar.`;
+    $('confirmText').textContent = `${parts.join(' y ').replace(/^./, c => c.toUpperCase())}. Rematar ahora da ${R.score} puntos y no se puede cambiar.`;
     render();
   }
   function finalize() { pending = false; done = true; persist(); render(); finish(true); }
@@ -494,13 +542,22 @@ function dayNumber(y, m, d) {
   });
 
   // ---- submit / share ----
+  $('solBtn').addEventListener('click', () => {
+    if (!done) return;
+    if (!solPath) solPath = findPerfect(P.S, P.E, P.stations, P.blocked);
+    if (!solPath) return;
+    showSol = !showSol;
+    $('solBtn').textContent = showSol ? 'Ver mi jugada' : 'Ver la solución';
+    render();
+    svg.scrollIntoView({ behavior: 'smooth', block: 'center' });
+  });
   $('keep').addEventListener('click', () => { if (!pending) return; path.pop(); pending = false; render(); });
   $('finish').addEventListener('click', () => { if (pending) finalize(); });
 
   function shareText(R) {
-    const stations = '🟢'.repeat(R.got) + '🔴'.repeat(R.missing);
+    const stations = '🟩'.repeat(R.got) + '🟥'.repeat(R.missing);
     const cr = R.cross === 0 ? 'Sin cruces ✨' : '✖️'.repeat(Math.min(R.cross, 8));
-    return `${practice ? 'Vías práctica' : 'Vías #' + num} 🚂 ${P.diff}\n${stations}  ${cr}\nPuntaje ${R.score}/100 · intento ${resets + 1}`;
+    return `${practice ? 'Gol práctica' : 'Gol #' + num} ⚽ ${P.diff}\n${stations}  ${cr}\nPuntaje ${R.score}/100 · intento ${resets + 1}`;
   }
 
   function finish(fresh) {
@@ -516,15 +573,16 @@ function dayNumber(y, m, d) {
     const st = store.get(TKEY) || { played: 1, perfect: R.score === 100 ? 1 : 0, streak: 1 };
     if (!practice) $('stPlayed').textContent = st.played; $('stPerfect').textContent = st.perfect; $('stStreak').textContent = st.streak;
     if (R.score === 100) {
-      $('resTitle').textContent = 'Vía perfecta';
-      $('resSub').textContent = `Todas las estaciones y ningún cruce, en el intento ${resets + 1}.`;
+      $('resTitle').textContent = 'Golazo';
+      $('resSub').textContent = `Pasaste por todos tus compañeros y ningún cruce, en el intento ${resets + 1}.`;
     } else {
       const parts = [];
-      if (R.missing) parts.push(`te ${R.missing === 1 ? 'faltó 1 estación' : 'faltaron ' + R.missing + ' estaciones'}`);
+      if (R.missing) parts.push(`te ${R.missing === 1 ? 'faltó 1 compañero' : 'faltaron ' + R.missing + ' compañeros'}`);
       if (R.cross) parts.push(`hiciste ${R.cross} ${R.cross === 1 ? 'cruce' : 'cruces'}`);
       $('resTitle').textContent = `Puntaje ${R.score}`;
-      $('resSub').textContent = `${parts.join(' y ').replace(/^./, c => c.toUpperCase())}. Había una vía perfecta.`;
+      $('resSub').textContent = `${parts.join(' y ').replace(/^./, c => c.toUpperCase())}. Había una jugada perfecta.`;
     }
+    $('solBtn').hidden = R.score === 100;
     $('shareText').value = shareText(R);
     $('result').classList.add('show');
     msg.textContent = '';
@@ -552,7 +610,7 @@ function dayNumber(y, m, d) {
   // ---- how to play ----
   const modal = $('modal');
   function openHelp() { modal.classList.add('show'); $('modalClose').focus(); }
-  function closeHelp() { modal.classList.remove('show'); store.set('vias1:seen', 1); }
+  function closeHelp() { modal.classList.remove('show'); store.set('gol1:seen', 1); }
   $('helpBtn').addEventListener('click', openHelp);
   $('modalClose').addEventListener('click', closeHelp);
   modal.addEventListener('click', e => { if (e.target === modal) closeHelp(); });
@@ -576,6 +634,7 @@ function dayNumber(y, m, d) {
     $('back').hidden = !practice;
     $('dailyStats').hidden = practice; $('nextRow').hidden = practice;
     $('shareBtn').textContent = 'Copiar resultado';
+    showSol = false; solPath = null; $('solBtn').hidden = true; $('solBtn').textContent = 'Ver la solución';
     render();
     if (done) finish(false);
   }
@@ -589,8 +648,13 @@ function dayNumber(y, m, d) {
   }));
   $('back').addEventListener('click', () => { applyPuzzle(daily, false); window.scrollTo({ top: 0, behavior: 'smooth' }); });
 
+  document.querySelectorAll('[data-ic]').forEach(el => {
+    const k = el.dataset.ic;
+    el.innerHTML = k === 'ball' ? spot(50, 50) + ball(50, 50, 21) : k === 'goal' ? goalIcon(0, 0)
+      : k === 'mate' ? mate(0, 0, false) : k === 'cone' ? cone(0, 0) : fig(0, 0, 'var(--rival)');
+  });
   applyPuzzle(daily, false);
-  if (!store.get('vias1:seen') && !done) openHelp();
+  if (!store.get('gol1:seen') && !done) openHelp();
 })();
 </script>
 </body>
