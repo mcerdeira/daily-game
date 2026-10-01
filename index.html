@@ -1,0 +1,597 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Vías — puzle diario</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,700;9..144,900&display=swap" rel="stylesheet">
+<style>
+:root{
+  box-sizing:border-box;
+  padding-top:env(safe-area-inset-top,0px);
+  padding-bottom:env(safe-area-inset-bottom,0px);
+  --bg:#e2eae5; --fg:#16232b; --muted:#5a6b66; --card:#f4f8f5; --line:rgba(22,35,43,.15);
+  --cell:#f4f8f5; --grid:#c8d6ce; --rock:#a7b4bd; --rock2:#7f8f9b;
+  --rail:#22303a; --slat:#d9a441; --head:#f4f8f5;
+  --start:#2e9e5b; --goal:#d1493f; --paper:#ffffff; --ink:#22303a; --good:#2e9e5b; --bad:#d1493f; --ring:#2e9e5b;
+}
+@media (prefers-color-scheme:dark){
+  :root:not([data-theme="light"]){
+    --bg:#0c1512; --fg:#e4ede8; --muted:#8ea39b; --card:#15211d; --line:rgba(228,237,232,.16);
+    --cell:#15211d; --grid:#24362f; --rock:#2c3b45; --rock2:#485b67;
+    --rail:#dfe8e3; --slat:#c98f2b; --head:#15211d;
+    --start:#3fbf78; --goal:#e5645a; --paper:#0c1512; --ink:#dfe8e3; --good:#3fbf78; --bad:#e5645a; --ring:#3fbf78;
+  }
+}
+:root[data-theme="dark"]{
+  --bg:#0c1512; --fg:#e4ede8; --muted:#8ea39b; --card:#15211d; --line:rgba(228,237,232,.16);
+  --cell:#15211d; --grid:#24362f; --rock:#2c3b45; --rock2:#485b67;
+  --rail:#dfe8e3; --slat:#c98f2b; --head:#15211d;
+  --start:#3fbf78; --goal:#e5645a; --paper:#0c1512; --ink:#dfe8e3; --good:#3fbf78; --bad:#e5645a; --ring:#3fbf78;
+}
+*,*::before,*::after{box-sizing:inherit}
+html{scroll-padding-top:env(safe-area-inset-top,0px);-webkit-text-size-adjust:100%}
+body{margin:0;background:var(--bg);color:var(--fg);font:16px/1.45 system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;display:flex;justify-content:center;min-height:100vh}
+main{width:min(100%,440px);padding:16px 16px 40px;display:flex;flex-direction:column;align-items:center;gap:14px}
+header{width:100%;display:flex;align-items:baseline;justify-content:space-between;gap:12px}
+h1{font-family:"Fraunces",Georgia,"Times New Roman",serif;font-weight:900;font-size:34px;line-height:1;margin:0;letter-spacing:-.01em}
+.meta{font-size:14px;color:var(--muted);text-align:right;display:flex;align-items:center;gap:6px}
+.help{font:inherit;font-weight:700;width:28px;height:28px;border-radius:50%;cursor:pointer;border:2px solid var(--fg);background:transparent;color:var(--fg);padding:0;line-height:1}
+.help:focus-visible,.btn:focus-visible,svg.board:focus-visible{outline:3px solid var(--ring);outline-offset:2px}
+.rule{width:100%;margin:0;font-size:15px;color:var(--muted)}
+.rule b{color:var(--fg);font-weight:600}
+
+.hud{width:100%;display:flex;gap:8px}
+.stat{flex:1;background:var(--card);border:1px solid var(--line);border-radius:10px;padding:8px 10px;display:flex;flex-direction:column;gap:2px}
+.stat span{font-size:13px;color:var(--muted)}
+.stat strong{font-size:24px;line-height:1.1;font-variant-numeric:tabular-nums}
+.stat.ok strong{color:var(--good)}
+.stat.warn strong{color:var(--bad)}
+.stat.dim strong{color:var(--muted)}
+
+svg.board{
+  --s:min(calc(100vw - 32px),408px);
+  width:var(--s);height:var(--s);display:block;touch-action:none;user-select:none;-webkit-user-select:none;
+  border-radius:8px;border:3px solid var(--fg);background:var(--cell);cursor:pointer;
+}
+.actions{display:flex;gap:10px;width:100%}
+button.btn{flex:1;font:inherit;font-weight:600;padding:12px 14px;border-radius:10px;cursor:pointer;border:2px solid var(--fg);background:transparent;color:var(--fg)}
+button.btn.primary{background:var(--fg);color:var(--bg)}
+button.btn:disabled{opacity:.35;cursor:default}
+.confirm{width:100%;background:var(--card);border:2px solid var(--fg);border-radius:12px;padding:14px;display:flex;flex-direction:column;gap:12px}
+.confirm[hidden],.actions[hidden]{display:none}
+.confirm p{margin:0;font-size:15px}
+.practice{width:100%;display:flex;flex-direction:column;gap:10px;padding-top:14px;border-top:1px solid var(--line)}
+.practice[hidden],#back[hidden]{display:none}
+.grid4{display:grid;grid-template-columns:repeat(4,1fr);gap:8px}
+.grid4 .btn{padding:10px 4px;font-size:14px}
+.note{font-size:13px;color:var(--muted);margin:0;text-align:center}
+.msg{min-height:44px;margin:0;font-size:15px;text-align:center;color:var(--fg)}
+
+.result{width:100%;background:var(--card);border:1px solid var(--line);border-radius:14px;padding:18px;display:none;flex-direction:column;gap:12px}
+.result.show{display:flex}
+.result h2{font-family:"Fraunces",Georgia,serif;font-size:24px;margin:0}
+.result .big{font-size:15px;color:var(--muted);margin:0}
+.share{width:100%;resize:none;font:15px/1.5 ui-monospace,SFMono-Regular,Menlo,monospace;background:var(--bg);color:var(--fg);border:1px solid var(--line);border-radius:10px;padding:10px 12px}
+.stats{display:flex;justify-content:space-between;text-align:center}
+.stats div{flex:1}
+.stats strong{display:block;font-size:24px;font-variant-numeric:tabular-nums}
+.stats span{font-size:13px;color:var(--muted)}
+.next{text-align:center;font-size:14px;color:var(--muted);margin:0}
+.next b{color:var(--fg);font-variant-numeric:tabular-nums}
+
+.modal{position:fixed;inset:0;z-index:10;background:rgba(5,9,13,.6);display:none;align-items:center;justify-content:center;padding:16px}
+.modal.show{display:flex}
+.card{width:min(100%,400px);max-height:100%;overflow:auto;background:var(--card);color:var(--fg);border-radius:14px;padding:20px;display:flex;flex-direction:column;gap:12px}
+.card h2{font-family:"Fraunces",Georgia,serif;font-size:24px;margin:0}
+.card p{margin:0;font-size:15px}
+.legend{list-style:none;margin:0;padding:0;display:flex;flex-direction:column;gap:8px;font-size:15px}
+.legend li{display:flex;align-items:center;gap:12px}
+.legend svg{width:34px;height:34px;flex:none}
+.scoring{background:var(--bg);border-radius:10px;padding:10px 12px;font-size:14px}
+</style>
+</head>
+<body>
+<main>
+  <header>
+    <h1>Vías</h1>
+    <div class="meta"><span id="meta"></span><button class="help" id="helpBtn" aria-label="Cómo se juega">?</button></div>
+  </header>
+  <p class="rule">Trazá la vía de la <b>salida</b> a la <b>meta</b>, pasando por todas las estaciones y sin cruzarte.</p>
+
+  <div class="hud">
+    <div class="stat" id="stSt"><span>Estaciones</span><strong id="vSt">0/0</strong></div>
+    <div class="stat" id="stCr"><span>Cruces</span><strong id="vCr">0</strong></div>
+    <div class="stat dim" id="stSc"><span>Puntaje</span><strong id="vSc">100</strong></div>
+  </div>
+
+  <svg class="board" id="board" viewBox="0 0 500 500" role="application" tabindex="0"
+       aria-label="Tablero de vías. Arrastrá desde la punta de la vía o usá las flechas del teclado."></svg>
+  <p class="msg" id="msg"></p>
+
+  <div class="confirm" id="confirm" hidden>
+    <p id="confirmText"></p>
+    <div class="actions">
+      <button class="btn" id="keep">Seguir</button>
+      <button class="btn primary" id="finish">Terminar</button>
+    </div>
+  </div>
+  <div class="actions" id="actions">
+    <button class="btn" id="clear">Borrar</button>
+  </div>
+  <p class="note">Tocar la meta cierra el día y es definitivo. Borrar suma un intento.</p>
+
+  <section class="result" id="result" aria-live="polite">
+    <h2 id="resTitle"></h2>
+    <p class="big" id="resSub"></p>
+    <textarea class="share" id="shareText" rows="4" readonly aria-label="Resultado para compartir"></textarea>
+    <button class="btn primary" id="shareBtn">Copiar resultado</button>
+    <div class="stats" id="dailyStats">
+      <div><strong id="stPlayed">0</strong><span>Jugados</span></div>
+      <div><strong id="stPerfect">0</strong><span>Vías perfectas</span></div>
+      <div><strong id="stStreak">0</strong><span>Racha</span></div>
+    </div>
+    <p class="next" id="nextRow">Próximo puzle en <b id="cd">--:--:--</b></p>
+  </section>
+
+  <section class="practice">
+    <p class="note">Modo práctica: puzles al azar, sin límite y sin afectar tu racha.</p>
+    <div class="grid4">
+      <button class="btn" data-lvl="1">Fácil</button>
+      <button class="btn" data-lvl="3">Media</button>
+      <button class="btn" data-lvl="5">Difícil</button>
+      <button class="btn" data-lvl="0">Experto</button>
+    </div>
+    <button class="btn" id="back" hidden>Volver al puzle de hoy</button>
+  </section>
+</main>
+
+<div class="modal" id="modal" role="dialog" aria-modal="true" aria-labelledby="mTitle">
+  <div class="card">
+    <h2 id="mTitle">Cómo se juega</h2>
+    <p>Construí una vía de tren de punta a punta, en línea recta y girando en las esquinas.</p>
+    <ul class="legend">
+      <li><svg viewBox="0 0 100 100"><circle cx="50" cy="50" r="40" fill="var(--start)"/><polygon points="40,30 40,70 72,50" fill="#fff"/></svg>Salida: desde acá arranca la vía.</li>
+      <li><svg viewBox="0 0 100 100"><circle cx="50" cy="50" r="40" fill="var(--goal)"/><line x1="40" y1="28" x2="40" y2="72" stroke="#fff" stroke-width="7" stroke-linecap="round"/><polygon points="40,28 72,40 40,52" fill="#fff"/></svg>Meta: tocala para terminar. Es definitivo.</li>
+      <li><svg viewBox="0 0 100 100"><circle cx="50" cy="50" r="30" fill="var(--paper)" stroke="var(--ink)" stroke-width="10"/></svg>Estación: la vía tiene que pasar por todas.</li>
+      <li><svg viewBox="0 0 100 100"><rect x="4" y="4" width="92" height="92" rx="10" fill="var(--rock)"/><polygon points="14,78 38,26 62,78" fill="var(--rock2)"/><polygon points="46,78 66,44 88,78" fill="var(--rock2)"/></svg>Montaña: no se puede pasar.</li>
+    </ul>
+    <p><b>Para dibujar:</b> arrastrá desde la punta de la vía, o tocá casillas vecinas. Para retroceder, volvé sobre tus pasos o tocá un tramo anterior. Al arrastrar, la vía se frena antes de la meta: entrás tocándola.</p>
+    <div class="scoring">
+      <b>Puntaje:</b> arranca en 100. Restás <b>25</b> por cada estación que falta y <b>10</b> por cada cruce (pasar dos veces por la misma casilla). Siempre existe una vía perfecta.
+    </div>
+    <button class="btn primary" id="modalClose">Jugar</button>
+  </div>
+</div>
+
+<script>
+const N = 5, CELLS = N * N;
+const ORTHO = Array.from({ length: CELLS }, (_, i) => {
+  const r = Math.floor(i / N), c = i % N, out = [];
+  if (r > 0) out.push(i - N);
+  if (r < N - 1) out.push(i + N);
+  if (c > 0) out.push(i - 1);
+  if (c < N - 1) out.push(i + 1);
+  return out;
+});
+
+function mulberry32(a) {
+  return function () {
+    a |= 0; a = (a + 0x6D2B79F5) | 0;
+    let t = Math.imul(a ^ (a >>> 15), 1 | a);
+    t = (t + Math.imul(t ^ (t >>> 7), 61 | t)) ^ t;
+    return ((t ^ (t >>> 14)) >>> 0) / 4294967296;
+  };
+}
+function hashStr(s) {
+  let h = 1779033703 ^ s.length;
+  for (let i = 0; i < s.length; i++) {
+    h = Math.imul(h ^ s.charCodeAt(i), 3432918353);
+    h = (h << 13) | (h >>> 19);
+  }
+  return h >>> 0;
+}
+
+// Counts "perfect" tracks: simple paths (no cell used twice) from S to E that pass through
+// every station. Gives up (returns null) once the count exceeds maxSol or the node budget runs out.
+function countPerfect(S, E, stations, blocked, maxSol, budget) {
+  const isSt = new Array(CELLS).fill(false);
+  stations.forEach(s => (isSt[s] = true));
+  const seen = new Array(CELLS).fill(false);
+  let sols = 0, nodes = 0, minLen = Infinity, abort = false;
+  function dfs(cell, stLeft, len) {
+    if (abort) return;
+    if (++nodes > budget) { abort = true; return; }
+    if (cell === E) {
+      if (stLeft === 0) { sols++; if (len < minLen) minLen = len; if (sols > maxSol) abort = true; }
+      return;
+    }
+    for (const n of ORTHO[cell]) {
+      if (blocked[n] || seen[n]) continue;
+      seen[n] = true;
+      dfs(n, stLeft - (isSt[n] ? 1 : 0), len + 1);
+      seen[n] = false;
+      if (abort) return;
+    }
+  }
+  seen[S] = true;
+  dfs(S, stations.length, 1);
+  return abort ? null : { sols, minLen };
+}
+
+// Shortest walk S -> (all stations) -> E when cells MAY be reused (the tempting shortcut).
+function shortestWalk(S, E, stations, blocked) {
+  const full = (1 << stations.length) - 1;
+  const bit = new Array(CELLS).fill(0);
+  stations.forEach((s, i) => (bit[s] = 1 << i));
+  const dist = new Array(CELLS * (full + 1)).fill(-1);
+  const st = S * (full + 1) + bit[S];
+  dist[st] = 0;
+  const q = [st];
+  for (let h = 0; h < q.length; h++) {
+    const cur = q[h], c = Math.floor(cur / (full + 1)), m = cur % (full + 1);
+    if (c === E && m === full) return dist[cur] + 1; // in cells
+    for (const n of ORTHO[c]) {
+      if (blocked[n]) continue;
+      const ns = n * (full + 1) + (m | bit[n]);
+      if (dist[ns] < 0) { dist[ns] = dist[cur] + 1; q.push(ns); }
+    }
+  }
+  return Infinity;
+}
+
+// Distances from one cell over free cells.
+function bfsFrom(from, blocked) {
+  const d = new Array(CELLS).fill(-1); d[from] = 0;
+  const q = [from];
+  for (let h = 0; h < q.length; h++) for (const n of ORTHO[q[h]]) if (!blocked[n] && d[n] < 0) { d[n] = d[q[h]] + 1; q.push(n); }
+  return d;
+}
+
+// How hard is it for a sensible human? Simulate "always head for the nearest pending station":
+// count the dead-ends that strategy runs into before finding the perfect track (capped).
+function effort(S, E, stations, blocked, cap) {
+  const dS = stations.map(s => bfsFrom(s, blocked)), dE = bfsFrom(E, blocked);
+  const isSt = new Array(CELLS).fill(false); stations.forEach(s => (isSt[s] = true));
+  const seen = new Array(CELLS).fill(false), got = new Array(CELLS).fill(false);
+  let nodes = 0, found = false;
+  const goal = c => {
+    let best = Infinity;
+    for (let i = 0; i < stations.length; i++) if (!got[stations[i]] && dS[i][c] >= 0 && dS[i][c] < best) best = dS[i][c];
+    return best === Infinity ? dE[c] : best;
+  };
+  function dfs(c, left) {
+    if (found || nodes >= cap) return;
+    nodes++;
+    if (c === E) { if (left === 0) found = true; return; }
+    const ns = ORTHO[c].filter(n => !blocked[n] && !seen[n]).sort((x, y) => goal(x) - goal(y));
+    for (const n of ns) {
+      seen[n] = true; const was = got[n]; if (isSt[n]) got[n] = true;
+      dfs(n, left - (isSt[n] ? 1 : 0));
+      got[n] = was; seen[n] = false;
+      if (found || nodes >= cap) return;
+    }
+  }
+  seen[S] = true; got[S] = isSt[S];
+  dfs(S, stations.length);
+  return nodes;
+}
+
+// Difficulty by weekday (0 = Sunday). Harder = more stations, fewer rocks, fewer perfect tracks,
+// and a longer stretch of dead-ends for the "nearest station first" strategy.
+const DIFF = [
+  { name: 'Experto', st: 4, rocks: [2, 2], maxSol: 1, minEffort: 700 },
+  { name: 'Fácil',   st: 3, rocks: [4, 5], maxSol: 3, minEffort: 40 },
+  { name: 'Fácil',   st: 3, rocks: [4, 4], maxSol: 2, minEffort: 100 },
+  { name: 'Media',   st: 4, rocks: [3, 4], maxSol: 2, minEffort: 150 },
+  { name: 'Media',   st: 4, rocks: [3, 3], maxSol: 2, minEffort: 300 },
+  { name: 'Difícil', st: 4, rocks: [2, 3], maxSol: 1, minEffort: 500 },
+  { name: 'Difícil', st: 4, rocks: [2, 3], maxSol: 1, minEffort: 700 },
+];
+
+function generateWith(seed, level) {
+  const rng = mulberry32(hashStr(seed));
+  const d = DIFF[level];
+  const CAP = 3000;
+  let fallback = null;
+  for (let attempt = 0; attempt < 12000; attempt++) {
+    const idx = Array.from({ length: CELLS }, (_, i) => i);
+    for (let i = CELLS - 1; i > 0; i--) {
+      const j = Math.floor(rng() * (i + 1));
+      [idx[i], idx[j]] = [idx[j], idx[i]];
+    }
+    const S = idx[0], E = idx[1];
+    const md = Math.abs((S % N) - (E % N)) + Math.abs(Math.floor(S / N) - Math.floor(E / N));
+    if (md < 3) continue;
+    const stations = idx.slice(2, 2 + d.st);
+    const k = d.rocks[0] + Math.floor(rng() * (d.rocks[1] - d.rocks[0] + 1));
+    const blocked = new Array(CELLS).fill(false);
+    for (let i = 0; i < k; i++) blocked[idx[2 + d.st + i]] = true;
+    const res = countPerfect(S, E, stations, blocked, d.maxSol, 60000);
+    if (!res || res.sols < 1) continue;
+    if (!(shortestWalk(S, E, stations, blocked) < res.minLen)) continue; // reusing a cell must tempt
+    const eff = effort(S, E, stations, blocked, CAP);
+    const cand = { S, E, stations, blocked, sols: res.sols, minLen: res.minLen, effort: eff, diff: d.name };
+    if (eff >= d.minEffort) return cand;
+    if (!fallback || eff > fallback.effort) fallback = cand;
+  }
+  return fallback;
+}
+
+function generate(dateKey, dow) { return generateWith('vias-v2-' + dateKey, dow); }
+
+function dayNumber(y, m, d) {
+  return Math.round((Date.UTC(y, m, d) - Date.UTC(2026, 8, 30)) / 864e5) + 1;
+}
+
+
+
+(function () {
+  // ---- date / puzzle ----
+  const qd = new URLSearchParams(location.search).get('d');
+  let now = new Date();
+  if (qd && /^\d{4}-\d{2}-\d{2}$/.test(qd)) { const [y, m, d] = qd.split('-').map(Number); now = new Date(y, m - 1, d); }
+  const pad = n => String(n).padStart(2, '0');
+  const dateKey = `${now.getFullYear()}-${pad(now.getMonth() + 1)}-${pad(now.getDate())}`;
+  const num = dayNumber(now.getFullYear(), now.getMonth(), now.getDate());
+  const daily = generate(dateKey, now.getDay());
+  let P = daily, practice = false;
+
+  const store = {
+    get(k) { try { const v = localStorage.getItem(k); return v ? JSON.parse(v) : null; } catch (e) { return null; } },
+    set(k, v) { try { localStorage.setItem(k, JSON.stringify(v)); } catch (e) {} }
+  };
+  const SKEY = 'vias2:' + dateKey, TKEY = 'vias1:stats';
+
+  // ---- state ----
+  let path = [P.S], resets = 0, done = false, dragging = false, pending = false;
+
+  const $ = id => document.getElementById(id);
+  const svg = $('board'), msg = $('msg');
+
+  const head = () => path[path.length - 1];
+
+  function calc() {
+    const visits = new Array(CELLS).fill(0);
+    path.forEach(c => visits[c]++);
+    let cross = 0; visits.forEach(v => { if (v > 1) cross += v - 1; });
+    const got = P.stations.filter(s => visits[s] > 0).length;
+    const missing = P.stations.length - got;
+    const score = Math.max(0, 100 - 25 * missing - 10 * cross);
+    return { visits, cross, got, missing, score };
+  }
+
+  // ---- drawing ----
+  const ctr = c => [(c % N) * 100 + 50, Math.floor(c / N) * 100 + 50];
+  function render() {
+    const R = calc(); let s = '';
+    for (let c = 0; c < CELLS; c++) {
+      const x = (c % N) * 100, y = Math.floor(c / N) * 100;
+      s += `<rect x="${x}" y="${y}" width="100" height="100" fill="${P.blocked[c] ? 'var(--rock)' : 'var(--cell)'}" stroke="var(--grid)" stroke-width="2"/>`;
+      if (P.blocked[c]) {
+        s += `<polygon points="${x+16},${y+78} ${x+40},${y+26} ${x+64},${y+78}" fill="var(--rock2)"/>` +
+             `<polygon points="${x+46},${y+78} ${x+66},${y+44} ${x+88},${y+78}" fill="var(--rock2)"/>`;
+      }
+    }
+    // track
+    const pts = path.map(c => ctr(c).join(',')).join(' ');
+    if (path.length > 1) {
+      s += `<polyline points="${pts}" fill="none" stroke="var(--rail)" stroke-width="26" stroke-linejoin="round" stroke-linecap="round"/>`;
+      s += `<polyline points="${pts}" fill="none" stroke="var(--slat)" stroke-width="26" stroke-linejoin="round" stroke-dasharray="4 14" stroke-linecap="butt"/>`;
+    }
+    // stations, start, goal
+    P.stations.forEach(c => {
+      const [cx, cy] = ctr(c), v = R.visits[c] > 0;
+      s += `<circle cx="${cx}" cy="${cy}" r="24" fill="${v ? 'var(--good)' : 'var(--paper)'}" stroke="${v ? 'var(--good)' : 'var(--ink)'}" stroke-width="7"/>`;
+      if (v) s += `<polyline points="${cx-10},${cy} ${cx-3},${cy+8} ${cx+11},${cy-8}" fill="none" stroke="#fff" stroke-width="6" stroke-linecap="round" stroke-linejoin="round"/>`;
+    });
+    { const [cx, cy] = ctr(P.S);
+      s += `<circle cx="${cx}" cy="${cy}" r="29" fill="var(--start)"/><polygon points="${cx-9},${cy-17} ${cx-9},${cy+17} ${cx+19},${cy}" fill="#fff"/>`; }
+    { const [cx, cy] = ctr(P.E);
+      s += `<circle cx="${cx}" cy="${cy}" r="29" fill="var(--goal)"/><line x1="${cx-9}" y1="${cy-17}" x2="${cx-9}" y2="${cy+17}" stroke="#fff" stroke-width="6" stroke-linecap="round"/><polygon points="${cx-9},${cy-17} ${cx+18},${cy-7} ${cx-9},${cy+3}" fill="#fff"/>`; }
+    // crossings
+    R.visits.forEach((v, c) => {
+      if (v > 1) { const [cx, cy] = ctr(c);
+        s += `<circle cx="${cx}" cy="${cy}" r="20" fill="var(--bad)" stroke="#fff" stroke-width="4"/><path d="M${cx-8},${cy-8} L${cx+8},${cy+8} M${cx+8},${cy-8} L${cx-8},${cy+8}" stroke="#fff" stroke-width="6" stroke-linecap="round"/>`; }
+    });
+    // head
+    if (!done && head() !== P.E) {
+      const [cx, cy] = ctr(head());
+      s += `<circle cx="${cx}" cy="${cy}" r="${head() === P.S ? 36 : 17}" fill="${head() === P.S ? 'none' : 'var(--head)'}" stroke="${head() === P.S ? 'var(--start)' : 'var(--rail)'}" stroke-width="6"${head() === P.S ? ' stroke-dasharray="6 8"' : ''}/>`;
+    }
+    svg.innerHTML = s;
+
+    // HUD
+    const total = P.stations.length, nearE = ORTHO[head()].includes(P.E);
+    $('vSt').textContent = `${R.got}/${total}`;
+    $('vCr').textContent = R.cross;
+    $('vSc').textContent = R.score;
+    $('stSt').className = 'stat ' + (R.missing === 0 ? 'ok' : '');
+    $('stCr').className = 'stat ' + (R.cross > 0 ? 'warn' : 'ok');
+    $('stSc').className = 'stat ' + (R.score === 100 ? 'ok' : '');
+    $('clear').disabled = done || pending || path.length < 2;
+    $('confirm').hidden = !pending;
+    $('actions').hidden = pending;
+
+    if (done || pending) msg.textContent = '';
+    else if (path.length === 1) msg.textContent = 'Arrastrá desde la salida o tocá una casilla vecina.';
+    else if (nearE && R.score === 100) msg.textContent = 'Vía perfecta. Tocá la meta para cerrarla.';
+    else if (nearE) msg.textContent = `Estás al lado de la meta. Si la tocás, terminás con ${R.score} puntos.`;
+    else msg.textContent = '';
+  }
+
+  function persist() { if (!practice) store.set(SKEY, { path, resets, done }); }
+
+  // ---- input ----
+  function cellAt(e) {
+    const r = svg.getBoundingClientRect();
+    const c = Math.floor((e.clientX - r.left) / r.width * N), rr = Math.floor((e.clientY - r.top) / r.height * N);
+    return (c < 0 || c >= N || rr < 0 || rr >= N) ? -1 : rr * N + c;
+  }
+  function extend(n) {
+    const h = head();
+    if (n === P.E || P.blocked[n] || !ORTHO[h].includes(n)) return false;
+    if (path.length > 1 && n === path[path.length - 2]) path.pop(); else path.push(n);
+    return true;
+  }
+  function stepToward(t) {
+    for (let i = 0; i < 8; i++) {
+      const h = head(); if (h === t) break;
+      const dr = Math.floor(t / N) - Math.floor(h / N), dc = (t % N) - (h % N);
+      const next = (Math.abs(dc) >= Math.abs(dr) && dc !== 0) ? h + Math.sign(dc) : h + Math.sign(dr) * N;
+      if (next === P.E || !extend(next)) break; // dragging never enters the goal
+    }
+  }
+  function goalTap() {
+    path.push(P.E);
+    const R = calc();
+    if (R.score === 100) { finalize(); return; }
+    pending = true; dragging = false;
+    const parts = [];
+    if (R.missing) parts.push(R.missing === 1 ? 'te falta 1 estación' : `te faltan ${R.missing} estaciones`);
+    if (R.cross) parts.push(R.cross === 1 ? 'hay 1 cruce' : `hay ${R.cross} cruces`);
+    $('confirmText').textContent = `${parts.join(' y ').replace(/^./, c => c.toUpperCase())}. Terminar ahora da ${R.score} puntos y no se puede cambiar.`;
+    render();
+  }
+  function finalize() { pending = false; done = true; persist(); render(); finish(true); }
+  svg.addEventListener('pointerdown', e => {
+    if (done || pending) return;
+    e.preventDefault();
+    const i = cellAt(e); if (i < 0) return;
+    if (i === head()) { dragging = true; try { svg.setPointerCapture(e.pointerId); } catch (err) {} return; }
+    if (i === P.E) { if (ORTHO[head()].includes(P.E)) goalTap(); return; }
+    const k = path.lastIndexOf(i);
+    if (k >= 0) { path.length = k + 1; }            // tap on the track: cut back to that point
+    else if (extend(i)) { dragging = true; }
+    persist(); render();
+  });
+  svg.addEventListener('pointermove', e => {
+    if (!dragging || done || pending) return;
+    const i = cellAt(e); if (i < 0) return;
+    const before = path.length, h = head();
+    stepToward(i);
+    if (path.length !== before || head() !== h) { persist(); render(); }
+  });
+  const stop = () => { dragging = false; };
+  svg.addEventListener('pointerup', stop);
+  svg.addEventListener('pointercancel', stop);
+  svg.addEventListener('keydown', e => {
+    if (done || pending) return;
+    const d = { ArrowUp: -N, ArrowDown: N, ArrowLeft: -1, ArrowRight: 1 }[e.key];
+    if (!d) return;
+    e.preventDefault();
+    const h = head(), n = h + d;
+    if ((d === -1 && h % N === 0) || (d === 1 && h % N === N - 1) || n < 0 || n >= CELLS) return;
+    if (n === P.E) { goalTap(); return; }
+    if (extend(n)) { persist(); render(); }
+  });
+
+  $('clear').addEventListener('click', () => {
+    if (done || pending || path.length < 2) return;
+    path = [P.S]; resets++; persist(); render();
+  });
+
+  // ---- submit / share ----
+  $('keep').addEventListener('click', () => { if (!pending) return; path.pop(); pending = false; render(); });
+  $('finish').addEventListener('click', () => { if (pending) finalize(); });
+
+  function shareText(R) {
+    const stations = '🟢'.repeat(R.got) + '🔴'.repeat(R.missing);
+    const cr = R.cross === 0 ? 'Sin cruces ✨' : '✖️'.repeat(Math.min(R.cross, 8));
+    return `${practice ? 'Vías práctica' : 'Vías #' + num} 🚂 ${P.diff}\n${stations}  ${cr}\nPuntaje ${R.score}/100 · intento ${resets + 1}`;
+  }
+
+  function finish(fresh) {
+    const R = calc();
+    if (fresh && !practice) {
+      const st = store.get(TKEY) || { played: 0, perfect: 0, streak: 0, last: '' };
+      const y = new Date(now); y.setDate(y.getDate() - 1);
+      const yk = `${y.getFullYear()}-${pad(y.getMonth() + 1)}-${pad(y.getDate())}`;
+      st.streak = st.last === yk ? st.streak + 1 : 1;
+      st.played++; if (R.score === 100) st.perfect++;
+      st.last = dateKey; store.set(TKEY, st);
+    }
+    const st = store.get(TKEY) || { played: 1, perfect: R.score === 100 ? 1 : 0, streak: 1 };
+    if (!practice) $('stPlayed').textContent = st.played; $('stPerfect').textContent = st.perfect; $('stStreak').textContent = st.streak;
+    if (R.score === 100) {
+      $('resTitle').textContent = 'Vía perfecta';
+      $('resSub').textContent = `Todas las estaciones y ningún cruce, en el intento ${resets + 1}.`;
+    } else {
+      const parts = [];
+      if (R.missing) parts.push(`te ${R.missing === 1 ? 'faltó 1 estación' : 'faltaron ' + R.missing + ' estaciones'}`);
+      if (R.cross) parts.push(`hiciste ${R.cross} ${R.cross === 1 ? 'cruce' : 'cruces'}`);
+      $('resTitle').textContent = `Puntaje ${R.score}`;
+      $('resSub').textContent = `${parts.join(' y ').replace(/^./, c => c.toUpperCase())}. Había una vía perfecta.`;
+    }
+    $('shareText').value = shareText(R);
+    $('result').classList.add('show');
+    msg.textContent = '';
+    tick();
+    if (fresh) $('result').scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+  }
+
+  $('shareBtn').addEventListener('click', async () => {
+    const t = $('shareText').value, btn = $('shareBtn');
+    let ok = false;
+    try { await navigator.clipboard.writeText(t); ok = true; } catch (e) {
+      try { $('shareText').select(); ok = document.execCommand('copy'); } catch (e2) {}
+    }
+    btn.textContent = ok ? 'Copiado' : 'Seleccioná el texto y copialo';
+    setTimeout(() => { btn.textContent = 'Copiar resultado'; }, 1800);
+  });
+
+  function tick() {
+    const n = new Date(), next = new Date(n.getFullYear(), n.getMonth(), n.getDate() + 1);
+    const s = Math.max(0, Math.floor((next - n) / 1000));
+    $('cd').textContent = `${pad(Math.floor(s / 3600))}:${pad(Math.floor(s % 3600 / 60))}:${pad(s % 60)}`;
+  }
+  setInterval(tick, 1000);
+
+  // ---- how to play ----
+  const modal = $('modal');
+  function openHelp() { modal.classList.add('show'); $('modalClose').focus(); }
+  function closeHelp() { modal.classList.remove('show'); store.set('vias1:seen', 1); }
+  $('helpBtn').addEventListener('click', openHelp);
+  $('modalClose').addEventListener('click', closeHelp);
+  modal.addEventListener('click', e => { if (e.target === modal) closeHelp(); });
+  document.addEventListener('keydown', e => { if (e.key === 'Escape' && modal.classList.contains('show')) closeHelp(); });
+
+  // ---- puzzle setup (daily or practice) ----
+  function applyPuzzle(puz, isPractice) {
+    P = puz; practice = isPractice;
+    path = [P.S]; resets = 0; done = false; dragging = false; pending = false;
+    if (!practice) {
+      const saved = store.get(SKEY);
+      if (saved && Array.isArray(saved.path) && saved.path[0] === P.S &&
+          saved.path.every(c => Number.isInteger(c) && c >= 0 && c < CELLS && !P.blocked[c])) {
+        path = saved.path; resets = saved.resets | 0; done = !!saved.done;
+        const ke = path.indexOf(P.E);
+        if (ke >= 0 && !done) path = path.slice(0, ke);
+      }
+    }
+    $('meta').textContent = practice ? `Práctica · ${P.diff}` : `Nº ${num} · ${P.diff}`;
+    $('result').classList.remove('show');
+    $('back').hidden = !practice;
+    $('dailyStats').hidden = practice; $('nextRow').hidden = practice;
+    $('shareBtn').textContent = 'Copiar resultado';
+    render();
+    if (done) finish(false);
+  }
+  document.querySelectorAll('[data-lvl]').forEach(b => b.addEventListener('click', () => {
+    const old = b.textContent; b.disabled = true; b.textContent = '…';
+    setTimeout(() => {
+      applyPuzzle(generateWith('p' + Math.random() + '-' + Date.now(), +b.dataset.lvl), true);
+      b.disabled = false; b.textContent = old;
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+    }, 30);
+  }));
+  $('back').addEventListener('click', () => { applyPuzzle(daily, false); window.scrollTo({ top: 0, behavior: 'smooth' }); });
+
+  applyPuzzle(daily, false);
+  if (!store.get('vias1:seen') && !done) openHelp();
+})();
+</script>
+</body>
+</html>
