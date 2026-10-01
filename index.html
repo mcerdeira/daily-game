@@ -42,7 +42,8 @@ h1,h2{font-size:22px;font-weight:800;line-height:1.2;letter-spacing:-.02em;margi
 header{display:flex;align-items:baseline;gap:8px}
 
 .btn,.help{font:inherit;font-weight:600;color:var(--fg);cursor:pointer;border:2px solid var(--fg);background:transparent}
-.btn{flex:1;padding:12px 16px;border-radius:var(--r)}
+.btn{flex:1;padding:12px 16px;border-radius:var(--r);display:inline-flex;align-items:center;justify-content:center;gap:8px}
+.btn svg{width:20px;height:20px;flex:none;fill:none;stroke:currentColor;stroke-width:2;stroke-linecap:round}
 .btn.primary{background:var(--fg);color:var(--bg)}
 .btn:disabled{opacity:.35;cursor:default}
 .help{width:28px;height:28px;border-radius:50%;padding:0;line-height:1;margin-left:auto;align-self:center}
@@ -113,7 +114,10 @@ main:has(.result.show) #actions,main:has(.result.show) #msg:empty,main:has(#conf
     </div>
     <textarea class="share" id="shareText" rows="3" readonly aria-label="Resultado para compartir"></textarea>
     <div class="actions">
-      <button class="btn primary" id="shareBtn">Copiar resultado</button>
+      <button class="btn primary" id="shareBtn">
+        <svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="18" cy="5" r="3"/><circle cx="6" cy="12" r="3"/><circle cx="18" cy="19" r="3"/><path d="M8.6 10.5l6.8-4M8.6 13.5l6.8 4"/></svg>
+        <span id="shareLbl">Compartir</span>
+      </button>
       <button class="btn" id="solBtn" hidden>Ver la solución</button>
     </div>
     <div class="stats" id="dailyStats">
@@ -388,11 +392,17 @@ function dayNumber(y, m, d) {
     (v ? `<circle cx="${x+80}" cy="${y+20}" r="15" fill="var(--good)" stroke="#fff" stroke-width="3"/>` +
          `<polyline points="${x+73},${y+20} ${x+78},${y+26} ${x+88},${y+14}" fill="none" stroke="#fff" stroke-width="4.5" stroke-linecap="round" stroke-linejoin="round"/>` : '');
   const ball = (cx, cy, r) => {
-    const pt = (k, rad) => { const a = (-90 + 72 * k) * Math.PI / 180; return [cx + rad * Math.cos(a), cy + rad * Math.sin(a)]; };
-    let g = `<circle cx="${cx}" cy="${cy}" r="${r}" fill="#fff" stroke="#1c1c1c" stroke-width="${Math.max(2.5, r / 6)}"/>`;
-    g += `<polygon points="${[0, 1, 2, 3, 4].map(k => pt(k, r * .42).join(',')).join(' ')}" fill="#1c1c1c"/>`;
-    for (let k = 0; k < 5; k++) { const p = pt(k, r * .42), q = pt(k, r * .86);
-      g += `<line x1="${p[0]}" y1="${p[1]}" x2="${q[0]}" y2="${q[1]}" stroke="#1c1c1c" stroke-width="${Math.max(2, r / 9)}" stroke-linecap="round"/>`; }
+    const pt = (deg, rad) => { const a = (deg - 90) * Math.PI / 180; return (cx + rad * Math.cos(a)).toFixed(1) + ',' + (cy + rad * Math.sin(a)).toFixed(1); };
+    const ink = '#1c1c1c', sw = Math.max(1.5, r / 11);
+    let g = `<circle cx="${cx}" cy="${cy}" r="${r}" fill="#fff"/>`;
+    g += `<polygon points="${[0, 1, 2, 3, 4].map(k => pt(72 * k, r * .36)).join(' ')}" fill="${ink}"/>`;
+    for (let a = 0; a < 360; a += 72) {
+      // seams: centre patch -> edge patch, and edge patch -> next edge patch
+      g += `<path d="M${pt(a, r * .36)} L${pt(a, r * .62)} M${pt(a + 20, r * .84)} L${pt(a + 52, r * .84)}" fill="none" stroke="${ink}" stroke-width="${sw}" stroke-linecap="round"/>`;
+      // edge patch, cut off by the outline of the ball
+      g += `<path d="M${pt(a, r * .62)} L${pt(a + 20, r * .84)} L${pt(a + 13, r)} A${r},${r} 0 0 0 ${pt(a - 13, r)} L${pt(a - 20, r * .84)} Z" fill="${ink}"/>`;
+    }
+    g += `<circle cx="${cx}" cy="${cy}" r="${r}" fill="none" stroke="${ink}" stroke-width="${Math.max(2, r / 8)}"/>`;
     return g;
   };
   const goalIcon = (x, y) => {
@@ -576,13 +586,19 @@ function dayNumber(y, m, d) {
   }
 
   $('shareBtn').addEventListener('click', async () => {
-    const t = $('shareText').value, btn = $('shareBtn');
+    const t = $('shareText').value, lbl = $('shareLbl');
+    // phones and tablets get the native share sheet; desktop copies to the clipboard
+    const mobile = /Android|iPhone|iPad|iPod/i.test(navigator.userAgent) ||
+      (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1);
+    if (mobile && navigator.share) {
+      try { await navigator.share({ text: t }); return; } catch (e) { if (e && e.name === 'AbortError') return; }
+    }
     let ok = false;
     try { await navigator.clipboard.writeText(t); ok = true; } catch (e) {
       try { $('shareText').select(); ok = document.execCommand('copy'); } catch (e2) {}
     }
-    btn.textContent = ok ? 'Copiado' : 'Seleccioná el texto y copialo';
-    setTimeout(() => { btn.textContent = 'Copiar resultado'; }, 1800);
+    lbl.textContent = ok ? 'Copiado' : 'Seleccioná el texto y copialo';
+    setTimeout(() => { lbl.textContent = 'Compartir'; }, 1800);
   });
 
   function tick() {
@@ -618,7 +634,7 @@ function dayNumber(y, m, d) {
     $('result').classList.remove('show');
     $('back').hidden = !practice;
     $('dailyStats').hidden = practice; $('nextRow').hidden = practice;
-    $('shareBtn').textContent = 'Copiar resultado';
+    $('shareLbl').textContent = 'Compartir';
     showSol = false; solPath = null; $('solBtn').hidden = true; $('solBtn').textContent = 'Ver la solución';
     render();
     if (done) finish(false);
