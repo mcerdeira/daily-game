@@ -13,7 +13,7 @@
   --pitch1:#5cb868; --pitch2:#4fa85b; --lines:rgba(255,255,255,.5);
   --rival:#d9433a; --mate:#1f6fe0; --skin:#f0c8a3;
   --good:#1f9d55; --bad:#d9433a; --good-text:#157a3e;
-  --r:6px;
+  --r:10px;
 }
 @media (prefers-color-scheme:dark){
   :root:not([data-theme="light"]){
@@ -40,14 +40,16 @@ h1,h2{font-size:22px;font-weight:800;line-height:1.2;letter-spacing:-.02em;margi
 .muted,.stat span{color:var(--muted)}
 
 header{display:flex;align-items:baseline;gap:8px}
-header .link{margin-left:auto}
 
-.btn,.link{font:inherit;color:var(--fg);cursor:pointer;border:0;border-radius:var(--r)}
-.btn{font-weight:600;min-height:44px;padding:8px 16px;background:var(--soft)}
+.btn,.help{font:inherit;font-weight:600;color:var(--fg);cursor:pointer;border:2px solid var(--fg);background:transparent}
+.btn{flex:1;padding:12px 16px;border-radius:var(--r)}
 .btn.primary{background:var(--fg);color:var(--bg)}
-.link{font-size:14px;padding:8px 0;margin:-8px 0;background:none;text-decoration:underline;text-underline-offset:3px}
-.link:disabled{opacity:.4;cursor:default}
-.btn:focus-visible,.link:focus-visible,svg.board:focus-visible{outline:2px solid var(--fg);outline-offset:2px}
+.btn:disabled{opacity:.35;cursor:default}
+.help{width:28px;height:28px;border-radius:50%;padding:0;line-height:1;margin-left:auto;align-self:center}
+.btn:focus-visible,.help:focus-visible,svg.board:focus-visible{outline:2px solid var(--fg);outline-offset:2px}
+.actions{display:flex;gap:8px}
+.grid4{display:grid;grid-template-columns:repeat(4,1fr);gap:8px}
+.grid4 .btn{padding:8px 4px;font-size:14px}
 
 .stats{display:flex;flex-wrap:wrap;gap:0 16px}
 .stat strong{font-weight:600;font-variant-numeric:tabular-nums}
@@ -56,21 +58,19 @@ header .link{margin-left:auto}
 
 svg.board{width:100%;aspect-ratio:1;display:block;touch-action:none;user-select:none;-webkit-user-select:none;border-radius:var(--r);background:var(--pitch1);cursor:pointer}
 
-.row{display:flex;align-items:center;gap:16px;flex-wrap:wrap}
-.under{display:flex;align-items:baseline;justify-content:space-between;gap:16px;min-height:44px}
-.under:has(#actions[hidden]),.under:has(#msg:empty):has(#clear:disabled){display:none}
-#clear:disabled{visibility:hidden}
+#msg{min-height:40px}
+main:has(.result.show) #actions,main:has(.result.show) #msg:empty,main:has(#confirm:not([hidden])) #msg{display:none}
 .confirm,.result{flex-direction:column;gap:16px}
 .confirm{display:flex}
 .result{display:none;margin-top:8px}
 .result.show{display:flex}
 .share{width:100%;resize:none;font:inherit;background:var(--soft);color:var(--fg);border:0;border-radius:var(--r);padding:8px 16px}
 #cd{font-variant-numeric:tabular-nums}
-.practice{display:flex;flex-wrap:wrap;align-items:baseline;gap:8px 16px;margin-top:8px}
+.practice{display:flex;flex-direction:column;gap:8px;margin-top:8px}
 
 .modal{position:fixed;inset:0;z-index:10;background:rgba(0,0,0,.6);display:none;align-items:center;justify-content:center;padding:16px}
 .modal.show{display:flex}
-.card{width:min(100%,400px);max-height:100%;overflow:auto;background:var(--bg);border-radius:var(--r);padding:24px;display:flex;flex-direction:column;align-items:flex-start;gap:16px}
+.card{width:min(100%,400px);max-height:100%;overflow:auto;background:var(--bg);border-radius:var(--r);padding:24px;display:flex;flex-direction:column;gap:16px}
 .legend{list-style:none;margin:0;padding:0;display:flex;flex-direction:column;gap:8px}
 .legend li{display:flex;align-items:center;gap:8px}
 .legend svg{width:40px;height:40px;flex:none;background:var(--pitch1);border-radius:var(--r)}
@@ -82,7 +82,7 @@ svg.board{width:100%;aspect-ratio:1;display:block;touch-action:none;user-select:
   <header>
     <h1>Gol</h1>
     <span class="small muted" id="meta"></span>
-    <button class="link" id="helpBtn">Cómo se juega</button>
+    <button class="help" id="helpBtn" aria-label="Cómo se juega">?</button>
   </header>
 
   <div class="stats">
@@ -94,16 +94,16 @@ svg.board{width:100%;aspect-ratio:1;display:block;touch-action:none;user-select:
   <svg class="board" id="board" viewBox="0 0 500 500" role="application" tabindex="0"
        aria-label="Cancha de 5 por 5. Arrastrá desde la pelota o usá las flechas del teclado."></svg>
 
-  <div class="under">
-    <p class="small muted" id="msg"></p>
-    <div id="actions"><button class="link" id="clear">Borrar</button></div>
-  </div>
+  <p class="small muted" id="msg"></p>
   <div class="confirm" id="confirm" hidden>
     <p id="confirmText"></p>
-    <div class="row">
+    <div class="actions">
+      <button class="btn" id="keep">Seguir</button>
       <button class="btn primary" id="finish">Rematar</button>
-      <button class="link" id="keep">Seguir jugando</button>
     </div>
+  </div>
+  <div class="actions" id="actions">
+    <button class="btn" id="clear">Borrar</button>
   </div>
 
   <section class="result" id="result" aria-live="polite">
@@ -112,9 +112,9 @@ svg.board{width:100%;aspect-ratio:1;display:block;touch-action:none;user-select:
       <p class="muted" id="resSub"></p>
     </div>
     <textarea class="share" id="shareText" rows="3" readonly aria-label="Resultado para compartir"></textarea>
-    <div class="row">
+    <div class="actions">
       <button class="btn primary" id="shareBtn">Copiar resultado</button>
-      <button class="link" id="solBtn" hidden>Ver la solución</button>
+      <button class="btn" id="solBtn" hidden>Ver la solución</button>
     </div>
     <div class="stats" id="dailyStats">
       <div class="stat"><span>Jugados</span> <strong id="stPlayed">0</strong></div>
@@ -126,11 +126,13 @@ svg.board{width:100%;aspect-ratio:1;display:block;touch-action:none;user-select:
 
   <section class="practice">
     <span class="muted">Práctica</span>
-    <button class="link" data-lvl="1">Fácil</button>
-    <button class="link" data-lvl="3">Media</button>
-    <button class="link" data-lvl="5">Difícil</button>
-    <button class="link" data-lvl="0">Experto</button>
-    <button class="link" id="back" hidden>Volver al puzle de hoy</button>
+    <div class="grid4">
+      <button class="btn" data-lvl="1">Fácil</button>
+      <button class="btn" data-lvl="3">Media</button>
+      <button class="btn" data-lvl="5">Difícil</button>
+      <button class="btn" data-lvl="0">Experto</button>
+    </div>
+    <button class="btn" id="back" hidden>Volver al puzle de hoy</button>
   </section>
 </main>
 
