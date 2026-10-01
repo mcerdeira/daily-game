@@ -3,166 +3,149 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-<title>Gol — puzle diario</title>
-<link rel="preconnect" href="https://fonts.googleapis.com">
-<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,700;9..144,900&display=swap" rel="stylesheet">
+<title>Gol</title>
 <style>
 :root{
   box-sizing:border-box;
   padding-top:env(safe-area-inset-top,0px);
   padding-bottom:env(safe-area-inset-bottom,0px);
-  --bg:#e4eee2; --fg:#12301d; --muted:#556b5c; --card:#f5faf4; --line:rgba(18,48,29,.16);
+  --bg:#f6f6f3; --fg:#1b1b1b; --muted:#6a6a66; --soft:rgba(0,0,0,.06);
   --pitch1:#5cb868; --pitch2:#4fa85b; --lines:rgba(255,255,255,.5);
   --rival:#d9433a; --mate:#1f6fe0; --skin:#f0c8a3;
-  --good:#1f9d55; --bad:#d9433a; --ring:#1f9d55;
+  --good:#1f9d55; --bad:#d9433a; --good-text:#157a3e;
+  --r:6px;
 }
 @media (prefers-color-scheme:dark){
   :root:not([data-theme="light"]){
-    --bg:#09160d; --fg:#e6f1e8; --muted:#8fa896; --card:#12221a; --line:rgba(230,241,232,.16);
+    --bg:#151515; --fg:#ececea; --muted:#9b9b96; --soft:rgba(255,255,255,.09);
     --pitch1:#2c7a3b; --pitch2:#256b33; --lines:rgba(255,255,255,.28);
     --rival:#e5564d; --mate:#4a8cf0; --skin:#f0c8a3;
-    --good:#3fbf78; --bad:#e5564d; --ring:#3fbf78;
+    --good:#3fbf78; --bad:#e5564d; --good-text:#3fbf78;
   }
 }
 :root[data-theme="dark"]{
-  --bg:#09160d; --fg:#e6f1e8; --muted:#8fa896; --card:#12221a; --line:rgba(230,241,232,.16);
+  --bg:#151515; --fg:#ececea; --muted:#9b9b96; --soft:rgba(255,255,255,.09);
   --pitch1:#2c7a3b; --pitch2:#256b33; --lines:rgba(255,255,255,.28);
   --rival:#e5564d; --mate:#4a8cf0; --skin:#f0c8a3;
-  --good:#3fbf78; --bad:#e5564d; --ring:#3fbf78;
+  --good:#3fbf78; --bad:#e5564d; --good-text:#3fbf78;
 }
 *,*::before,*::after{box-sizing:inherit}
+[hidden]{display:none!important}
 html{scroll-padding-top:env(safe-area-inset-top,0px);-webkit-text-size-adjust:100%}
 body{margin:0;background:var(--bg);color:var(--fg);font:16px/1.45 system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;display:flex;justify-content:center;min-height:100vh}
-main{width:min(100%,440px);padding:16px 16px 40px;display:flex;flex-direction:column;align-items:center;gap:14px}
-header{width:100%;display:flex;align-items:baseline;justify-content:space-between;gap:12px}
-h1{font-family:"Fraunces",Georgia,"Times New Roman",serif;font-weight:900;font-size:34px;line-height:1;margin:0;letter-spacing:-.01em}
-.meta{font-size:14px;color:var(--muted);text-align:right;display:flex;align-items:center;gap:6px}
-.help{font:inherit;font-weight:700;width:28px;height:28px;border-radius:50%;cursor:pointer;border:2px solid var(--fg);background:transparent;color:var(--fg);padding:0;line-height:1}
-.help:focus-visible,.btn:focus-visible,svg.board:focus-visible{outline:3px solid var(--ring);outline-offset:2px}
-.rule{width:100%;margin:0;font-size:15px;color:var(--muted)}
-.rule b{color:var(--fg);font-weight:600}
+main{width:min(100%,440px);padding:16px 16px 48px;display:flex;flex-direction:column;gap:16px}
+p{margin:0}
+h1,h2{font-size:22px;font-weight:800;line-height:1.2;letter-spacing:-.02em;margin:0}
+.small,.stats,.practice{font-size:14px}
+.muted,.stat span{color:var(--muted)}
 
-.hud{width:100%;display:flex;gap:8px}
-.stat{flex:1;background:var(--card);border:1px solid var(--line);border-radius:10px;padding:8px 10px;display:flex;flex-direction:column;gap:2px}
-.stat span{font-size:13px;color:var(--muted)}
-.stat strong{font-size:24px;line-height:1.1;font-variant-numeric:tabular-nums}
-.stat.ok strong{color:var(--good)}
+header{display:flex;align-items:baseline;gap:8px}
+header .link{margin-left:auto}
+
+.btn,.link{font:inherit;color:var(--fg);cursor:pointer;border:0;border-radius:var(--r)}
+.btn{font-weight:600;min-height:44px;padding:8px 16px;background:var(--soft)}
+.btn.primary{background:var(--fg);color:var(--bg)}
+.link{font-size:14px;padding:8px 0;margin:-8px 0;background:none;text-decoration:underline;text-underline-offset:3px}
+.link:disabled{opacity:.4;cursor:default}
+.btn:focus-visible,.link:focus-visible,svg.board:focus-visible{outline:2px solid var(--fg);outline-offset:2px}
+
+.stats{display:flex;flex-wrap:wrap;gap:0 16px}
+.stat strong{font-weight:600;font-variant-numeric:tabular-nums}
+#stSt.ok strong{color:var(--good-text)}
 .stat.warn strong{color:var(--bad)}
-.stat.dim strong{color:var(--muted)}
 
-svg.board{
-  --s:min(calc(100vw - 32px),408px);
-  width:var(--s);height:var(--s);display:block;touch-action:none;user-select:none;-webkit-user-select:none;
-  border-radius:8px;border:3px solid var(--fg);background:var(--pitch1);cursor:pointer;
-}
-.actions{display:flex;gap:10px;width:100%}
-button.btn{flex:1;font:inherit;font-weight:600;padding:12px 14px;border-radius:10px;cursor:pointer;border:2px solid var(--fg);background:transparent;color:var(--fg)}
-button.btn.primary{background:var(--fg);color:var(--bg)}
-button.btn:disabled{opacity:.35;cursor:default}
-.confirm{width:100%;background:var(--card);border:2px solid var(--fg);border-radius:12px;padding:14px;display:flex;flex-direction:column;gap:12px}
-.confirm[hidden],.actions[hidden]{display:none}
-.confirm p{margin:0;font-size:15px}
-.practice{width:100%;display:flex;flex-direction:column;gap:10px;padding-top:14px;border-top:1px solid var(--line)}
-.practice[hidden],#back[hidden],#solBtn[hidden]{display:none}
-.grid4{display:grid;grid-template-columns:repeat(4,1fr);gap:8px}
-.grid4 .btn{padding:10px 4px;font-size:14px}
-.note{font-size:13px;color:var(--muted);margin:0;text-align:center}
-.msg{min-height:44px;margin:0;font-size:15px;text-align:center;color:var(--fg)}
+svg.board{width:100%;aspect-ratio:1;display:block;touch-action:none;user-select:none;-webkit-user-select:none;border-radius:var(--r);background:var(--pitch1);cursor:pointer}
 
-.result{width:100%;background:var(--card);border:1px solid var(--line);border-radius:14px;padding:18px;display:none;flex-direction:column;gap:12px}
+.row{display:flex;align-items:center;gap:16px;flex-wrap:wrap}
+.under{display:flex;align-items:baseline;justify-content:space-between;gap:16px;min-height:44px}
+.under:has(#actions[hidden]),.under:has(#msg:empty):has(#clear:disabled){display:none}
+#clear:disabled{visibility:hidden}
+.confirm,.result{flex-direction:column;gap:16px}
+.confirm{display:flex}
+.result{display:none;margin-top:8px}
 .result.show{display:flex}
-.result h2{font-family:"Fraunces",Georgia,serif;font-size:24px;margin:0}
-.result .big{font-size:15px;color:var(--muted);margin:0}
-.share{width:100%;resize:none;font:15px/1.5 ui-monospace,SFMono-Regular,Menlo,monospace;background:var(--bg);color:var(--fg);border:1px solid var(--line);border-radius:10px;padding:10px 12px}
-.stats{display:flex;justify-content:space-between;text-align:center}
-.stats div{flex:1}
-.stats strong{display:block;font-size:24px;font-variant-numeric:tabular-nums}
-.stats span{font-size:13px;color:var(--muted)}
-.next{text-align:center;font-size:14px;color:var(--muted);margin:0}
-.next b{color:var(--fg);font-variant-numeric:tabular-nums}
+.share{width:100%;resize:none;font:inherit;background:var(--soft);color:var(--fg);border:0;border-radius:var(--r);padding:8px 16px}
+#cd{font-variant-numeric:tabular-nums}
+.practice{display:flex;flex-wrap:wrap;align-items:baseline;gap:8px 16px;margin-top:8px}
 
-.modal{position:fixed;inset:0;z-index:10;background:rgba(5,9,13,.6);display:none;align-items:center;justify-content:center;padding:16px}
+.modal{position:fixed;inset:0;z-index:10;background:rgba(0,0,0,.6);display:none;align-items:center;justify-content:center;padding:16px}
 .modal.show{display:flex}
-.card{width:min(100%,400px);max-height:100%;overflow:auto;background:var(--card);color:var(--fg);border-radius:14px;padding:20px;display:flex;flex-direction:column;gap:12px}
-.card h2{font-family:"Fraunces",Georgia,serif;font-size:24px;margin:0}
-.card p{margin:0;font-size:15px}
-.legend{list-style:none;margin:0;padding:0;display:flex;flex-direction:column;gap:8px;font-size:15px}
-.legend li{display:flex;align-items:center;gap:12px}
-.legend svg{width:46px;height:46px;flex:none;background:var(--pitch1);border-radius:8px}
-.scoring{background:var(--bg);border-radius:10px;padding:10px 12px;font-size:14px}
+.card{width:min(100%,400px);max-height:100%;overflow:auto;background:var(--bg);border-radius:var(--r);padding:24px;display:flex;flex-direction:column;align-items:flex-start;gap:16px}
+.legend{list-style:none;margin:0;padding:0;display:flex;flex-direction:column;gap:8px}
+.legend li{display:flex;align-items:center;gap:8px}
+.legend svg{width:40px;height:40px;flex:none;background:var(--pitch1);border-radius:var(--r)}
+.legend svg:last-of-type{margin-right:8px}
 </style>
 </head>
 <body>
 <main>
   <header>
     <h1>Gol</h1>
-    <div class="meta"><span id="meta"></span><button class="help" id="helpBtn" aria-label="Cómo se juega">?</button></div>
+    <span class="small muted" id="meta"></span>
+    <button class="link" id="helpBtn">Cómo se juega</button>
   </header>
-  <p class="rule">Llevá la pelota de la <b>salida</b> al <b>arco</b>, pasando por todos tus compañeros y sin cruzarte.</p>
 
-  <div class="hud">
-    <div class="stat" id="stSt"><span>Compañeros</span><strong id="vSt">0/0</strong></div>
-    <div class="stat" id="stCr"><span>Cruces</span><strong id="vCr">0</strong></div>
-    <div class="stat dim" id="stSc"><span>Puntaje</span><strong id="vSc">100</strong></div>
+  <div class="stats">
+    <div class="stat" id="stSt"><span>Compañeros</span> <strong id="vSt">0/0</strong></div>
+    <div class="stat" id="stCr"><span>Cruces</span> <strong id="vCr">0</strong></div>
+    <div class="stat" id="stSc"><span>Puntaje</span> <strong id="vSc">100</strong></div>
   </div>
 
   <svg class="board" id="board" viewBox="0 0 500 500" role="application" tabindex="0"
        aria-label="Cancha de 5 por 5. Arrastrá desde la pelota o usá las flechas del teclado."></svg>
-  <p class="msg" id="msg"></p>
 
+  <div class="under">
+    <p class="small muted" id="msg"></p>
+    <div id="actions"><button class="link" id="clear">Borrar</button></div>
+  </div>
   <div class="confirm" id="confirm" hidden>
     <p id="confirmText"></p>
-    <div class="actions">
-      <button class="btn" id="keep">Seguir</button>
+    <div class="row">
       <button class="btn primary" id="finish">Rematar</button>
+      <button class="link" id="keep">Seguir jugando</button>
     </div>
   </div>
-  <div class="actions" id="actions">
-    <button class="btn" id="clear">Borrar</button>
-  </div>
-  <p class="note">Patear al arco cierra el día y es definitivo. Borrar suma un intento.</p>
 
   <section class="result" id="result" aria-live="polite">
-    <h2 id="resTitle"></h2>
-    <p class="big" id="resSub"></p>
-    <textarea class="share" id="shareText" rows="4" readonly aria-label="Resultado para compartir"></textarea>
-    <button class="btn primary" id="shareBtn">Copiar resultado</button>
-    <button class="btn" id="solBtn" hidden>Ver la solución</button>
-    <div class="stats" id="dailyStats">
-      <div><strong id="stPlayed">0</strong><span>Jugados</span></div>
-      <div><strong id="stPerfect">0</strong><span>Goles perfectos</span></div>
-      <div><strong id="stStreak">0</strong><span>Racha</span></div>
+    <div>
+      <h2 id="resTitle"></h2>
+      <p class="muted" id="resSub"></p>
     </div>
-    <p class="next" id="nextRow">Próximo puzle en <b id="cd">--:--:--</b></p>
+    <textarea class="share" id="shareText" rows="3" readonly aria-label="Resultado para compartir"></textarea>
+    <div class="row">
+      <button class="btn primary" id="shareBtn">Copiar resultado</button>
+      <button class="link" id="solBtn" hidden>Ver la solución</button>
+    </div>
+    <div class="stats" id="dailyStats">
+      <div class="stat"><span>Jugados</span> <strong id="stPlayed">0</strong></div>
+      <div class="stat"><span>Perfectos</span> <strong id="stPerfect">0</strong></div>
+      <div class="stat"><span>Racha</span> <strong id="stStreak">0</strong></div>
+    </div>
+    <p class="small muted" id="nextRow">Próximo puzle en <span id="cd">--:--:--</span></p>
   </section>
 
   <section class="practice">
-    <p class="note">Modo práctica: puzles al azar, sin límite y sin afectar tu racha.</p>
-    <div class="grid4">
-      <button class="btn" data-lvl="1">Fácil</button>
-      <button class="btn" data-lvl="3">Media</button>
-      <button class="btn" data-lvl="5">Difícil</button>
-      <button class="btn" data-lvl="0">Experto</button>
-    </div>
-    <button class="btn" id="back" hidden>Volver al puzle de hoy</button>
+    <span class="muted">Práctica</span>
+    <button class="link" data-lvl="1">Fácil</button>
+    <button class="link" data-lvl="3">Media</button>
+    <button class="link" data-lvl="5">Difícil</button>
+    <button class="link" data-lvl="0">Experto</button>
+    <button class="link" id="back" hidden>Volver al puzle de hoy</button>
   </section>
 </main>
 
 <div class="modal" id="modal" role="dialog" aria-modal="true" aria-labelledby="mTitle">
   <div class="card">
     <h2 id="mTitle">Cómo se juega</h2>
-    <p>Dibujá el recorrido de la pelota, en línea recta y girando en las esquinas.</p>
+    <p>Llevá la pelota al arco pasando por todos tus compañeros, sin pisar dos veces la misma casilla.</p>
     <ul class="legend">
-      <li><svg viewBox="0 0 100 100" data-ic="ball"></svg>Salida: ahí arranca la pelota.</li>
-      <li><svg viewBox="0 0 100 100" data-ic="goal"></svg>Arco: tocalo para patear. Es definitivo.</li>
-      <li><svg viewBox="0 0 100 100" data-ic="mate"></svg>Compañero: la jugada tiene que pasar por todos.</li>
-      <li><svg viewBox="0 0 100 100" data-ic="cone"></svg><svg viewBox="0 0 100 100" data-ic="rival"></svg>Conos y rivales: no se pueden pasar.</li>
+      <li><svg viewBox="0 0 100 100" data-ic="ball"></svg>Salida</li>
+      <li><svg viewBox="0 0 100 100" data-ic="goal"></svg>Arco. Tocalo para patear, es definitivo</li>
+      <li><svg viewBox="0 0 100 100" data-ic="mate"></svg>Compañero</li>
+      <li><svg viewBox="0 0 100 100" data-ic="cone"></svg><svg viewBox="0 0 100 100" data-ic="rival"></svg>No se pueden pasar</li>
     </ul>
-    <p><b>Para dibujar:</b> arrastrá desde la pelota, o tocá casillas vecinas. Para retroceder, volvé sobre tus pasos o tocá un tramo anterior. Al arrastrar, la pelota se frena antes del arco: para patear hay que tocarlo.</p>
-    <div class="scoring">
-      <b>Puntaje:</b> arranca en 100. Restás <b>25</b> por cada compañero que falta y <b>10</b> por cada cruce (pasar dos veces por la misma casilla). Siempre existe una jugada perfecta.
-    </div>
+    <p>Arrastrá la pelota o tocá casillas vecinas. Para retroceder, volvé sobre tus pasos o tocá un tramo anterior.</p>
+    <p>Empezás con 100 puntos: −25 por compañero que falta, −10 por cruce. Siempre hay una jugada perfecta.</p>
     <button class="btn primary" id="modalClose">Jugar</button>
   </div>
 </div>
@@ -465,9 +448,9 @@ function dayNumber(y, m, d) {
     if (done || pending) msg.textContent = '';
     else if (path.length === 1) msg.textContent = 'Arrastrá la pelota o tocá una casilla vecina.';
     else if (nearE && R.score === 100) msg.textContent = 'Jugada perfecta. Tocá el arco para patear.';
-    else if (nearE) msg.textContent = `Estás al lado del arco. Si lo tocás, pateás y terminás con ${R.score} puntos.`;
+    else if (nearE) msg.textContent = `Si pateás ahora, terminás con ${R.score} puntos.`;
     else msg.textContent = '';
-    if (showSol) msg.textContent = 'Así se resolvía: esta es una jugada perfecta.';
+    if (showSol) msg.textContent = 'Esta era una jugada perfecta.';
   }
 
   function persist() { if (!practice) store.set(SKEY, { path, resets, done }); }
@@ -574,7 +557,7 @@ function dayNumber(y, m, d) {
     if (!practice) $('stPlayed').textContent = st.played; $('stPerfect').textContent = st.perfect; $('stStreak').textContent = st.streak;
     if (R.score === 100) {
       $('resTitle').textContent = 'Golazo';
-      $('resSub').textContent = `Pasaste por todos tus compañeros y ningún cruce, en el intento ${resets + 1}.`;
+      $('resSub').textContent = `Todos tus compañeros y ningún cruce, en el intento ${resets + 1}.`;
     } else {
       const parts = [];
       if (R.missing) parts.push(`te ${R.missing === 1 ? 'faltó 1 compañero' : 'faltaron ' + R.missing + ' compañeros'}`);
