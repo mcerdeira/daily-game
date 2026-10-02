@@ -95,6 +95,19 @@ main:has(.result.show) #actions,main:has(.result.show) #msg:empty,main:has(#conf
 .legend li{display:flex;align-items:center;gap:8px}
 .legend svg{width:40px;height:40px;flex:none;background:var(--pitch1);border-radius:var(--r)}
 .legend svg:last-of-type{margin-right:8px}
+
+.kick{transform-box:fill-box;transform-origin:center;animation:kick .7s ease-out}
+@keyframes kick{20%{transform:scale(1.16) rotate(-3deg)}45%{transform:scale(.94) rotate(2deg)}70%{transform:scale(1.05) rotate(-1deg)}}
+.cheer{position:fixed;inset:0;z-index:20;pointer-events:none;display:flex;align-items:flex-start;justify-content:center;padding-top:30vh}
+.cheer canvas{position:absolute;inset:0;width:100%;height:100%}
+.cheer p{position:relative;display:flex;font-size:min(11vw,48px);font-weight:900;line-height:1;color:#fff;animation:cheer-out .4s ease-in 2.2s forwards;
+  text-shadow:-2px -2px 0 #1c1c1c,2px -2px 0 #1c1c1c,-2px 2px 0 #1c1c1c,2px 2px 0 #1c1c1c,0 5px 0 #1c1c1c,0 10px 18px rgba(0,0,0,.35)}
+.cheer span{display:inline-block;animation:cheer-pop .45s cubic-bezier(.2,1.6,.4,1) both,cheer-bob .5s ease-in-out infinite alternate;
+  animation-delay:calc(var(--i)*50ms),calc(var(--i)*50ms + .45s)}
+@keyframes cheer-pop{from{opacity:0;transform:translateY(24px) scale(.2)}}
+@keyframes cheer-bob{to{transform:translateY(-10px) rotate(-4deg)}}
+@keyframes cheer-out{to{opacity:0;transform:scale(1.25)}}
+@media (prefers-reduced-motion:reduce){.kick,.cheer span{animation:none}}
 </style>
 </head>
 <body>
@@ -165,7 +178,7 @@ main:has(.result.show) #actions,main:has(.result.show) #msg:empty,main:has(#conf
     <p>Llevá la pelota al arco pasando por todos tus compañeros, sin pisar dos veces la misma casilla.</p>
     <ul class="legend">
       <li><svg viewBox="0 0 100 100" data-ic="ball"></svg>Salida</li>
-      <li><svg viewBox="0 0 100 100" data-ic="goal"></svg>Arco. Tocalo para patear, es definitivo</li>
+      <li><svg viewBox="0 0 100 100" data-ic="goal"></svg>Arco. Llevá la pelota ahí para patear, es definitivo</li>
       <li><svg viewBox="0 0 100 100" data-ic="mate"></svg>Compañero</li>
       <li><svg viewBox="0 0 100 100" data-ic="cone"></svg><svg viewBox="0 0 100 100" data-ic="rival"></svg>No se pueden pasar</li>
     </ul>
@@ -382,6 +395,7 @@ function dayNumber(y, m, d) {
 
   // ---- state ----
   let path = [P.S], resets = 0, done = false, dragging = false, pending = false, showSol = false, solPath = null;
+  let kick = false; // true for a moment right after the shot, so the goal and the ball get their animation
 
   const $ = id => document.getElementById(id);
   const svg = $('board'), msg = $('msg');
@@ -445,7 +459,8 @@ function dayNumber(y, m, d) {
       s += `<rect x="${x}" y="${y}" width="100" height="100" fill="${(c % N) % 2 ? 'var(--pitch2)' : 'var(--pitch1)'}" stroke="var(--lines)" stroke-width="2"/>`;
     }
     { const [cx, cy] = ctr(P.S); s += spot(cx, cy); }
-    s += goalIcon((P.E % N) * 100, Math.floor(P.E / N) * 100);
+    const kicked = h => kick ? `<g class="kick">${h}</g>` : h;
+    s += kicked(goalIcon((P.E % N) * 100, Math.floor(P.E / N) * 100));
     for (let c = 0; c < CELLS; c++) if (P.blocked[c]) {
       const x = (c % N) * 100, y = Math.floor(c / N) * 100;
       s += ((c + P.S + P.E) % 2) ? cone(x, y) : fig(x, y, 'var(--rival)');
@@ -464,7 +479,7 @@ function dayNumber(y, m, d) {
         s += `<circle cx="${cx}" cy="${cy}" r="20" fill="var(--bad)" stroke="#fff" stroke-width="4"/><path d="M${cx-8},${cy-8} L${cx+8},${cy+8} M${cx+8},${cy-8} L${cx-8},${cy+8}" stroke="#fff" stroke-width="6" stroke-linecap="round"/>`; }
     });
     // the ball sits at the head of the route (inside the goal once you shoot)
-    if (hd === P.E) { const [cx, cy] = ctr(P.E); s += ball(cx, cy + 6, 15); }
+    if (hd === P.E) { const [cx, cy] = ctr(P.E); s += kicked(ball(cx, cy + 6, 15)); }
     else { const [cx, cy] = ctr(hd); s += ball(cx, cy, 21); }
     svg.innerHTML = s;
 
@@ -482,7 +497,7 @@ function dayNumber(y, m, d) {
 
     if (done || pending) msg.textContent = '';
     else if (path.length === 1) msg.textContent = 'Arrastrá la pelota o tocá una casilla vecina.';
-    else if (nearE && R.score === 100) msg.textContent = 'Jugada perfecta. Tocá el arco para patear.';
+    else if (nearE && R.score === 100) msg.textContent = 'Jugada perfecta. Llevá la pelota al arco para patear.';
     else if (nearE) msg.textContent = `Si pateás ahora, terminás con ${R.score} puntos.`;
     else msg.textContent = '';
     if (showSol) msg.textContent = 'Esta era una jugada perfecta.';
@@ -507,7 +522,12 @@ function dayNumber(y, m, d) {
       const h = head(); if (h === t) break;
       const dr = Math.floor(t / N) - Math.floor(h / N), dc = (t % N) - (h % N);
       const next = (Math.abs(dc) >= Math.abs(dr) && dc !== 0) ? h + Math.sign(dc) : h + Math.sign(dr) * N;
-      if (next === P.E || !extend(next)) break; // dragging never enters the goal
+      if (next === P.E) {
+        // dragging onto the goal shoots; a drag that merely passes through it does not
+        if (t === P.E) { persist(); goalTap(); }
+        break;
+      }
+      if (!extend(next)) break;
     }
   }
   function goalTap() {
@@ -521,7 +541,49 @@ function dayNumber(y, m, d) {
     $('confirmText').textContent = `${parts.join(' y ').replace(/^./, c => c.toUpperCase())}. Rematar ahora da ${R.score} puntos y no se puede cambiar.`;
     render();
   }
-  function finalize() { pending = false; done = true; persist(); render(); finish(true); }
+  function finalize() {
+    pending = false; done = true; persist();
+    kick = true; setTimeout(() => { kick = false; }, 900);
+    render(); finish(true); celebrate();
+  }
+
+  // ---- goal celebration: paper confetti plus the shout, on a layer that removes itself ----
+  function celebrate() {
+    const old = $('cheer'); if (old) old.remove();
+    const el = document.createElement('div');
+    el.className = 'cheer'; el.id = 'cheer'; el.setAttribute('aria-hidden', 'true');
+    el.innerHTML = '<canvas></canvas><p>' + [...'GOOOOOOOOL!'].map((ch, i) => `<span style="--i:${i}">${ch}</span>`).join('') + '</p>';
+    document.body.appendChild(el);
+    if (matchMedia('(prefers-reduced-motion: reduce)').matches) { setTimeout(() => el.remove(), 2600); return; }
+    const cv = el.firstChild, ctx = cv.getContext('2d'), dpr = Math.min(2, window.devicePixelRatio || 1);
+    const W = window.innerWidth, H = window.innerHeight, LIFE = 3.6, FADE = .6;
+    cv.width = W * dpr; cv.height = H * dpr; ctx.scale(dpr, dpr);
+    const colors = ['#75aadb', '#ffd54a', '#1f6fe0', '#d9433a', '#1f9d55', '#fff'];
+    const rnd = (a, b) => a + Math.random() * (b - a);
+    const bits = Array.from({ length: 140 }, (_, i) => ({
+      x: rnd(0, W), y: rnd(-H * .5, -20), vy: rnd(180, 420), w: rnd(6, 12), h: rnd(8, 16),
+      rot: rnd(0, 6.28), vr: rnd(-4, 4), flip: rnd(0, 6.28), vf: rnd(4, 10), sway: rnd(0, 6.28), col: colors[i % colors.length]
+    }));
+    let t0 = 0, last = 0;
+    function frame(ts) {
+      if (!el.isConnected) return;
+      if (!t0) t0 = last = ts;
+      const t = (ts - t0) / 1000, dt = Math.min(.05, (ts - last) / 1000); last = ts;
+      if (t > LIFE) { el.remove(); return; }
+      ctx.clearRect(0, 0, W, H);
+      ctx.globalAlpha = Math.min(1, (LIFE - t) / FADE);
+      for (const b of bits) {
+        b.y += b.vy * dt; b.x += Math.sin(b.sway + t * 3) * 50 * dt;
+        b.rot += b.vr * dt; b.flip += b.vf * dt;
+        ctx.save();
+        ctx.translate(b.x, b.y); ctx.rotate(b.rot); ctx.scale(1, Math.cos(b.flip));
+        ctx.fillStyle = b.col; ctx.fillRect(-b.w / 2, -b.h / 2, b.w, b.h);
+        ctx.restore();
+      }
+      requestAnimationFrame(frame);
+    }
+    requestAnimationFrame(frame);
+  }
   svg.addEventListener('pointerdown', e => {
     if (done || pending) return;
     e.preventDefault();
@@ -538,6 +600,7 @@ function dayNumber(y, m, d) {
     const i = cellAt(e); if (i < 0) return;
     const before = path.length, h = head();
     stepToward(i);
+    if (done || pending) return; // the drag reached the goal: goalTap already saved and drew
     if (path.length !== before || head() !== h) { persist(); render(); }
   });
   const stop = () => { dragging = false; };
