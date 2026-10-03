@@ -182,7 +182,7 @@ main:has(.result.show) #actions,main:has(.result.show) #msg:empty,main:has(#conf
     <p>Llevá la pelota al arco pasando por todos tus compañeros, sin pisar dos veces la misma casilla.</p>
     <ul class="legend">
       <li><svg viewBox="0 0 100 100" data-ic="ball"></svg>Salida</li>
-      <li><svg viewBox="0 0 100 100" data-ic="goal"></svg>Arco. Llevá la pelota ahí para patear, es definitivo</li>
+      <li><svg viewBox="0 0 100 100" data-ic="goal"></svg>Arco. Solo se entra de frente, desde la casilla de arriba. Patear es definitivo</li>
       <li><svg viewBox="0 0 100 100" data-ic="mate"></svg>Compañero</li>
       <li><svg viewBox="0 0 100 100" data-ic="cone"></svg><svg viewBox="0 0 100 100" data-ic="rival"></svg>No se pueden pasar</li>
     </ul>
@@ -308,16 +308,21 @@ function effort(S, E, stations, blocked, cap) {
   return nodes;
 }
 
+// The goal only opens upward: the ball has to come in from the cell right above it (its mouth).
+// For the solvers that is the same board with the goal turned into a wall and the mouth as the target.
+const mouth = E => E - N;
+function goalWalls(blocked, E) { const w = blocked.slice(); w[E] = true; return w; }
+
 // Difficulty by weekday (0 = Sunday). Harder = more stations, fewer rocks, fewer perfect tracks,
 // and a longer stretch of dead-ends for the "nearest station first" strategy.
 const DIFF = [
-  { name: 'Experto', st: 4, rocks: [2, 2], maxSol: 1, minEffort: 1000 },
-  { name: 'Fácil',   st: 3, rocks: [4, 4], maxSol: 2, minEffort: 100 },
-  { name: 'Fácil',   st: 4, rocks: [3, 4], maxSol: 2, minEffort: 150 },
-  { name: 'Media',   st: 4, rocks: [3, 3], maxSol: 2, minEffort: 300 },
-  { name: 'Media',   st: 4, rocks: [2, 3], maxSol: 1, minEffort: 500 },
-  { name: 'Difícil', st: 4, rocks: [2, 3], maxSol: 1, minEffort: 700 },
-  { name: 'Difícil', st: 4, rocks: [2, 2], maxSol: 1, minEffort: 700 },
+  { name: 'Experto', st: 4, rocks: [2, 2], maxSol: 1, minEffort: 1500 },
+  { name: 'Fácil',   st: 3, rocks: [4, 4], maxSol: 2, minEffort: 150 },
+  { name: 'Fácil',   st: 4, rocks: [3, 4], maxSol: 2, minEffort: 250 },
+  { name: 'Media',   st: 4, rocks: [3, 3], maxSol: 2, minEffort: 450 },
+  { name: 'Media',   st: 4, rocks: [2, 3], maxSol: 1, minEffort: 700 },
+  { name: 'Difícil', st: 4, rocks: [2, 3], maxSol: 1, minEffort: 1000 },
+  { name: 'Difícil', st: 4, rocks: [2, 2], maxSol: 1, minEffort: 1000 },
 ];
 
 function generateWith(seed, level, extraRocks = 0) {
@@ -332,17 +337,21 @@ function generateWith(seed, level, extraRocks = 0) {
       [idx[i], idx[j]] = [idx[j], idx[i]];
     }
     const S = idx[0], E = idx[1];
+    if (E < N) continue; // top row: no cell above to shoot from
     const md = Math.abs((S % N) - (E % N)) + Math.abs(Math.floor(S / N) - Math.floor(E / N));
     if (md < 3) continue;
     const stations = idx.slice(2, 2 + d.st);
     const k = d.rocks[0] + Math.floor(rng() * (d.rocks[1] + extraRocks - d.rocks[0] + 1));
     const blocked = new Array(CELLS).fill(false);
     for (let i = 0; i < k; i++) blocked[idx[2 + d.st + i]] = true;
-    const res = countPerfect(S, E, stations, blocked, d.maxSol, 60000);
+    const M = mouth(E);
+    if (blocked[M]) continue;
+    const walls = goalWalls(blocked, E);
+    const res = countPerfect(S, M, stations, walls, d.maxSol, 60000);
     if (!res || res.sols < 1) continue;
-    if (!(shortestWalk(S, E, stations, blocked) < res.minLen)) continue; // reusing a cell must tempt
-    const eff = effort(S, E, stations, blocked, CAP);
-    const cand = { S, E, stations, blocked, sols: res.sols, minLen: res.minLen, effort: eff, diff: d.name };
+    if (!(shortestWalk(S, M, stations, walls) < res.minLen)) continue; // reusing a cell must tempt
+    const eff = effort(S, M, stations, walls, CAP);
+    const cand = { S, E, stations, blocked, sols: res.sols, minLen: res.minLen + 1, effort: eff, diff: d.name };
     if (eff >= d.minEffort) return cand;
     if (!fallback || eff > fallback.effort) fallback = cand;
   }
@@ -399,6 +408,7 @@ function dayNumber(y, m, d) {
 
   // ---- state ----
   let path = [P.S], resets = 0, done = false, dragging = false, pending = false, showSol = false, solPath = null;
+  let wrongSide = false; // the last move tried to enter the goal from a side or from behind
   let kick = false; // true for a moment right after the shot, so the goal and the ball get their animation
 
   const $ = id => document.getElementById(id);
@@ -446,13 +456,20 @@ function dayNumber(y, m, d) {
     g += `<circle cx="${cx}" cy="${cy}" r="${r}" fill="none" stroke="${ink}" stroke-width="${Math.max(2, r / 8)}"/>`;
     return g;
   };
+  // seen from above: posts and open mouth at the top, net closing the sides and the back
   const goalIcon = (x, y) => {
-    const gx = x + 10, gy = y + 24, gw = 80, gh = 54;
+    const gx = x + 13, gy = y + 16, gw = 74, gh = 66;
     let g = `<rect x="${gx}" y="${gy}" width="${gw}" height="${gh}" fill="rgba(255,255,255,.22)"/>`;
     for (let i = 1; i < 6; i++) g += `<line x1="${gx + gw * i / 6}" y1="${gy}" x2="${gx + gw * i / 6}" y2="${gy + gh}" stroke="#fff" stroke-opacity=".6" stroke-width="2"/>`;
-    for (let i = 1; i < 4; i++) g += `<line x1="${gx}" y1="${gy + gh * i / 4}" x2="${gx + gw}" y2="${gy + gh * i / 4}" stroke="#fff" stroke-opacity=".6" stroke-width="2"/>`;
-    return g + `<rect x="${gx}" y="${gy}" width="${gw}" height="${gh}" fill="none" stroke="#fff" stroke-width="7" stroke-linejoin="round"/>`;
+    for (let i = 1; i < 5; i++) g += `<line x1="${gx}" y1="${gy + gh * i / 5}" x2="${gx + gw}" y2="${gy + gh * i / 5}" stroke="#fff" stroke-opacity=".6" stroke-width="2"/>`;
+    g += `<line x1="${gx}" y1="${gy}" x2="${gx + gw}" y2="${gy}" stroke="#fff" stroke-opacity=".75" stroke-width="3" stroke-dasharray="7 6"/>`;
+    g += `<path d="M${gx},${gy} V${gy + gh} H${gx + gw} V${gy}" fill="none" stroke="#fff" stroke-width="7" stroke-linejoin="round"/>`;
+    return g + `<circle cx="${gx}" cy="${gy}" r="8" fill="#fff"/><circle cx="${gx + gw}" cy="${gy}" r="8" fill="#fff"/>`;
   };
+  // goal area painted on the mouth cell, with a chevron pointing into the goal
+  const goalArea = (x, y) =>
+    `<path d="M${x+16},${y+100} V${y+72} H${x+84} V${y+100}" fill="none" stroke="#fff" stroke-opacity=".8" stroke-width="4" stroke-linejoin="round"/>` +
+    `<polyline points="${x+40},${y+80} ${x+50},${y+90} ${x+60},${y+80}" fill="none" stroke="#fff" stroke-opacity=".8" stroke-width="4" stroke-linecap="round" stroke-linejoin="round"/>`;
   const spot = (cx, cy) => `<circle cx="${cx}" cy="${cy}" r="31" fill="none" stroke="#fff" stroke-width="5" opacity=".9"/>`;
 
   function render() {
@@ -463,6 +480,7 @@ function dayNumber(y, m, d) {
       s += `<rect x="${x}" y="${y}" width="100" height="100" fill="${(c % N) % 2 ? 'var(--pitch2)' : 'var(--pitch1)'}" stroke="var(--lines)" stroke-width="2"/>`;
     }
     { const [cx, cy] = ctr(P.S); s += spot(cx, cy); }
+    { const m = mouth(P.E); s += goalArea((m % N) * 100, Math.floor(m / N) * 100); }
     const kicked = h => kick ? `<g class="kick">${h}</g>` : h;
     s += kicked(goalIcon((P.E % N) * 100, Math.floor(P.E / N) * 100));
     for (let c = 0; c < CELLS; c++) if (P.blocked[c]) {
@@ -488,7 +506,7 @@ function dayNumber(y, m, d) {
     svg.innerHTML = s;
 
     // HUD
-    const total = P.stations.length, nearE = ORTHO[head()].includes(P.E);
+    const total = P.stations.length, nearE = head() === mouth(P.E);
     $('vSt').textContent = `${R.got}/${total}`;
     $('vCr').textContent = R.cross;
     $('vSc').textContent = R.score;
@@ -500,6 +518,7 @@ function dayNumber(y, m, d) {
     $('actions').hidden = pending;
 
     if (done || pending) msg.textContent = '';
+    else if (wrongSide) msg.textContent = 'El arco se patea de frente: entrá desde la casilla de arriba.';
     else if (path.length === 1) msg.textContent = 'Arrastrá la pelota o tocá una casilla vecina.';
     else if (nearE && R.score === 100) msg.textContent = 'Jugada perfecta. Llevá la pelota al arco para patear.';
     else if (nearE) msg.textContent = `Si pateás ahora, terminás con ${R.score} puntos.`;
@@ -519,23 +538,26 @@ function dayNumber(y, m, d) {
     const h = head();
     if (n === P.E || P.blocked[n] || !ORTHO[h].includes(n)) return false;
     if (path.length > 1 && n === path[path.length - 2]) path.pop(); else path.push(n);
+    wrongSide = false;
     return true;
   }
+  // tried to reach the goal from a neighbour that is not its mouth: no shot, just say why
+  function sideTry() { if (!wrongSide) { wrongSide = true; render(); } }
   function stepToward(t) {
     for (let i = 0; i < 8; i++) {
       const h = head(); if (h === t) break;
       const dr = Math.floor(t / N) - Math.floor(h / N), dc = (t % N) - (h % N);
       const next = (Math.abs(dc) >= Math.abs(dr) && dc !== 0) ? h + Math.sign(dc) : h + Math.sign(dr) * N;
       if (next === P.E) {
-        // dragging onto the goal shoots; a drag that merely passes through it does not
-        if (t === P.E) { persist(); goalTap(); }
+        // dragging onto the goal shoots, but only from its mouth; a drag that merely passes through it does not
+        if (t === P.E) { if (h === mouth(P.E)) { persist(); goalTap(); } else sideTry(); }
         break;
       }
       if (!extend(next)) break;
     }
   }
   function goalTap() {
-    path.push(P.E);
+    path.push(P.E); wrongSide = false;
     const R = calc();
     if (R.score === 100) { finalize(); return; }
     pending = true; dragging = false;
@@ -593,7 +615,7 @@ function dayNumber(y, m, d) {
     e.preventDefault();
     const i = cellAt(e); if (i < 0) return;
     if (i === head()) { dragging = true; try { svg.setPointerCapture(e.pointerId); } catch (err) {} return; }
-    if (i === P.E) { if (ORTHO[head()].includes(P.E)) goalTap(); return; }
+    if (i === P.E) { if (head() === mouth(P.E)) goalTap(); else if (ORTHO[head()].includes(P.E)) sideTry(); return; }
     const k = path.lastIndexOf(i);
     if (k >= 0) { path.length = k + 1; }            // tap on the track: cut back to that point
     else if (extend(i)) { dragging = true; }
@@ -617,19 +639,22 @@ function dayNumber(y, m, d) {
     e.preventDefault();
     const h = head(), n = h + d;
     if ((d === -1 && h % N === 0) || (d === 1 && h % N === N - 1) || n < 0 || n >= CELLS) return;
-    if (n === P.E) { goalTap(); return; }
+    if (n === P.E) { if (h === mouth(P.E)) goalTap(); else sideTry(); return; }
     if (extend(n)) { persist(); render(); }
   });
 
   $('clear').addEventListener('click', () => {
     if (done || pending || path.length < 2) return;
-    path = [P.S]; resets++; persist(); render();
+    path = [P.S]; resets++; wrongSide = false; persist(); render();
   });
 
   // ---- submit / share ----
   $('solBtn').addEventListener('click', () => {
     if (!done) return;
-    if (!solPath) solPath = findPerfect(P.S, P.E, P.stations, P.blocked);
+    if (!solPath) {
+      const sp = findPerfect(P.S, mouth(P.E), P.stations, goalWalls(P.blocked, P.E));
+      solPath = sp && sp.concat(P.E);
+    }
     if (!solPath) return;
     showSol = !showSol;
     $('solBtn').textContent = showSol ? 'Ver mi jugada' : 'Ver la solución';
@@ -719,11 +744,12 @@ function dayNumber(y, m, d) {
   // ---- puzzle setup (daily or practice) ----
   function applyPuzzle(puz, isPractice) {
     P = puz; practice = isPractice;
-    path = [P.S]; resets = 0; done = false; dragging = false; pending = false;
+    path = [P.S]; resets = 0; done = false; dragging = false; pending = false; wrongSide = false;
     if (!practice) {
       const saved = store.get(SKEY);
       if (saved && Array.isArray(saved.path) && saved.path[0] === P.S &&
-          saved.path.every(c => Number.isInteger(c) && c >= 0 && c < CELLS && !P.blocked[c])) {
+          saved.path.every(c => Number.isInteger(c) && c >= 0 && c < CELLS && !P.blocked[c]) &&
+          saved.path.every((c, k) => c !== P.E || saved.path[k - 1] === mouth(P.E))) {
         path = saved.path; resets = saved.resets | 0; done = !!saved.done;
         const ke = path.indexOf(P.E);
         if (ke >= 0 && !done) path = path.slice(0, ke);
