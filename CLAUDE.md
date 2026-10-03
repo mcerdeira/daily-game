@@ -5,6 +5,7 @@ Juego web de un puzle por día: llevar la pelota al arco pasando por todos los c
 - Publicado en https://mcerdeira.github.io/daily-game/ (GitHub Pages, repo `mcerdeira/daily-game`, rama `main`).
 - Todo el juego vive en `index.html`: HTML, CSS y JS inline, sin dependencias, sin build, sin tests.
 - `og.png` (1200×630) es la imagen de preview de link. Es estática, no hay script que la genere.
+- `manifest.webmanifest` + `icon-192.png` / `icon-512.png` hacen que Chrome en Android ofrezca "Instalar". No hay service worker a propósito: la app instalada no funciona sin conexión y no hay caché que pueda servir un `index.html` viejo. No agregarlo sin avisar.
 
 ## Cómo probar
 
@@ -115,9 +116,10 @@ Puntaje <p>/100 · intento <k>
 ## Cosas duplicadas que hay que cambiar juntas
 
 - **URL del sitio**: `SITE_URL` en el JS, `canonical`, `og:url`, `og:image`, `twitter:image`.
-- **Descripción**: `meta description`, `og:description`, `twitter:description` y el primer párrafo del modal de ayuda.
-- **Colores**: los tokens de modo oscuro están dos veces, en `@media (prefers-color-scheme:dark)` y en `:root[data-theme="dark"]`.
-- **Pelota**: `ball()` en el JS, el favicon (SVG inline en el `<link rel="icon">`, misma pelota con radio 14) y `og.png`.
+- **Descripción**: `meta description`, `og:description`, `twitter:description`, `description` del manifest y el primer párrafo del modal de ayuda.
+- **Colores**: los tokens de modo oscuro están dos veces, en `@media (prefers-color-scheme:dark)` y en `:root[data-theme="dark"]`. `--bg` además está en los dos `meta theme-color` y en `background_color` / `theme_color` del manifest.
+- **Ruta del sitio**: `id`, `start_url` y `scope` del manifest (`/daily-game/`).
+- **Pelota**: `ball()` en el JS, el favicon (SVG inline en el `<link rel="icon">`, misma pelota con radio 14), `og.png` y los íconos de la app (`icon-192.png`, `icon-512.png`: la pelota del favicon sobre la cancha, dentro del 80% central para que el recorte de Android no la corte).
 - **Aspecto del tablero**: si cambian las piezas o los colores de la cancha, `og.png` queda desactualizada y hay que rehacerla a mano (1200×630).
 
 ## Dibujo
