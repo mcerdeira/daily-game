@@ -131,8 +131,8 @@ Puntaje <p>/100 · intento <k>
 ## Dibujo
 
 - `render()` reconstruye todo el SVG con `innerHTML` en cada cambio de estado y actualiza el HUD. No hay DOM persistente dentro del tablero, así que una animación dentro del tablero se reinicia en cada `render()`.
-- Cada pieza es una función que devuelve un string SVG para una casilla de 100×100: `fig`, `cone`, `mate`, `ball`, `goalIcon`, `goalArea`, `spot`. El modal de ayuda reutiliza esas mismas funciones vía `data-ic`.
-- El arco se dibuja visto desde arriba: palos y boca abierta en el borde superior, red cerrando costados y fondo. `goalArea` pinta el área chica con una flecha en `mouth(E)`, debajo de las piezas.
+- Cada pieza es una función que devuelve un string SVG para una casilla de 100×100: `fig`, `cone`, `mate`, `ball`, `goalIcon`, `spot`. El modal de ayuda reutiliza esas mismas funciones vía `data-ic`.
+- El arco se dibuja visto desde arriba: palos y boca abierta en el borde superior, red cerrando costados y fondo. La casilla de arriba no lleva ninguna marca (se probó un área chica y se sacó por ser demasiada información visual).
 - Usar las variables CSS (`--pitch1`, `--mate`, `--rival`, `--good`, `--bad`...) para que funcionen los dos temas.
 
 ## Festejo del gol

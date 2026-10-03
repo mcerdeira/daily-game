@@ -466,10 +466,6 @@ function dayNumber(y, m, d) {
     g += `<path d="M${gx},${gy} V${gy + gh} H${gx + gw} V${gy}" fill="none" stroke="#fff" stroke-width="7" stroke-linejoin="round"/>`;
     return g + `<circle cx="${gx}" cy="${gy}" r="8" fill="#fff"/><circle cx="${gx + gw}" cy="${gy}" r="8" fill="#fff"/>`;
   };
-  // goal area painted on the mouth cell, with a chevron pointing into the goal
-  const goalArea = (x, y) =>
-    `<path d="M${x+16},${y+100} V${y+72} H${x+84} V${y+100}" fill="none" stroke="#fff" stroke-opacity=".8" stroke-width="4" stroke-linejoin="round"/>` +
-    `<polyline points="${x+40},${y+80} ${x+50},${y+90} ${x+60},${y+80}" fill="none" stroke="#fff" stroke-opacity=".8" stroke-width="4" stroke-linecap="round" stroke-linejoin="round"/>`;
   const spot = (cx, cy) => `<circle cx="${cx}" cy="${cy}" r="31" fill="none" stroke="#fff" stroke-width="5" opacity=".9"/>`;
 
   function render() {
@@ -480,7 +476,6 @@ function dayNumber(y, m, d) {
       s += `<rect x="${x}" y="${y}" width="100" height="100" fill="${(c % N) % 2 ? 'var(--pitch2)' : 'var(--pitch1)'}" stroke="var(--lines)" stroke-width="2"/>`;
     }
     { const [cx, cy] = ctr(P.S); s += spot(cx, cy); }
-    { const m = mouth(P.E); s += goalArea((m % N) * 100, Math.floor(m / N) * 100); }
     const kicked = h => kick ? `<g class="kick">${h}</g>` : h;
     s += kicked(goalIcon((P.E % N) * 100, Math.floor(P.E / N) * 100));
     for (let c = 0; c < CELLS; c++) if (P.blocked[c]) {
