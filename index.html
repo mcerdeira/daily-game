@@ -144,7 +144,7 @@ main:has(.result.show) #actions,main:has(.result.show) #msg:empty,main:has(#conf
       <h2 id="resTitle"></h2>
       <p class="muted" id="resSub"></p>
     </div>
-    <textarea class="share" id="shareText" rows="4" readonly aria-label="Resultado para compartir"></textarea>
+    <textarea class="share" id="shareText" rows="3" readonly aria-label="Resultado para compartir"></textarea>
     <div class="actions">
       <button class="btn primary" id="shareBtn">
         <svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="18" cy="5" r="3"/><circle cx="6" cy="12" r="3"/><circle cx="18" cy="19" r="3"/><path d="M8.6 10.5l6.8-4M8.6 13.5l6.8 4"/></svg>
@@ -641,6 +641,9 @@ function dayNumber(y, m, d) {
     return `${practice ? 'Gol práctica' : 'Gol #' + num} ⚽ ${P.diff}\n${stations}  ${cr}\nPuntaje ${R.score}/100 · intento ${resets + 1}\n${SITE_URL}`;
   }
 
+  // full text handed to share/clipboard; the on-screen box shows it without the link
+  let shareFull = '';
+
   function finish(fresh) {
     const R = calc();
     if (fresh && !practice) {
@@ -664,7 +667,8 @@ function dayNumber(y, m, d) {
       $('resSub').textContent = `${parts.join(' y ').replace(/^./, c => c.toUpperCase())}. Había una jugada perfecta.`;
     }
     $('solBtn').hidden = R.score === 100;
-    $('shareText').value = shareText(R);
+    shareFull = shareText(R);
+    $('shareText').value = shareFull.slice(0, shareFull.lastIndexOf('\n'));
     $('result').classList.add('show');
     msg.textContent = '';
     tick();
@@ -672,7 +676,7 @@ function dayNumber(y, m, d) {
   }
 
   $('shareBtn').addEventListener('click', async () => {
-    const t = $('shareText').value, lbl = $('shareLbl');
+    const t = shareFull, box = $('shareText'), lbl = $('shareLbl');
     // phones and tablets get the native share sheet; desktop copies to the clipboard
     const mobile = /Android|iPhone|iPad|iPod/i.test(navigator.userAgent) ||
       (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1);
@@ -681,7 +685,12 @@ function dayNumber(y, m, d) {
     }
     let ok = false;
     try { await navigator.clipboard.writeText(t); ok = true; } catch (e) {
-      try { $('shareText').select(); ok = document.execCommand('copy'); } catch (e2) {}
+      // the fallback copies whatever the box holds, so it needs the link for a moment
+      const shown = box.value;
+      box.value = t;
+      try { box.select(); ok = document.execCommand('copy'); } catch (e2) {}
+      // if nothing worked, leave the full text there so a manual copy includes the link
+      if (ok) { box.value = shown; box.blur(); }
     }
     lbl.textContent = ok ? 'Copiado' : 'Seleccioná el texto y copialo';
     setTimeout(() => { lbl.textContent = 'Compartir'; }, 1800);
