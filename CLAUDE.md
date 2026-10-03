@@ -4,7 +4,7 @@ Juego web de un puzle por día: llevar la pelota al arco pasando por todos los c
 
 - Publicado en https://mcerdeira.github.io/daily-game/ (GitHub Pages, repo `mcerdeira/daily-game`, rama `main`).
 - Todo el juego vive en `index.html`: HTML, CSS y JS inline, sin dependencias, sin build, sin tests.
-- `og.png` (1200×630) es la imagen de preview de link. Es estática, no hay script que la genere.
+- `og.png` (1200×630) es la imagen de preview de link. Es estática, no hay script que la genere. La actual salió de una captura con Chrome sin interfaz, dibujando un tablero armado a mano con las funciones del juego: la pelota está en la casilla de arriba del arco, que es la única jugada válida para mostrar.
 - `manifest.webmanifest` + `icon-192.png` / `icon-512.png` hacen que Chrome en Android ofrezca "Instalar". No hay service worker a propósito: la app instalada no funciona sin conexión y no hay caché que pueda servir un `index.html` viejo. No agregarlo sin avisar.
 
 ## Cómo probar
