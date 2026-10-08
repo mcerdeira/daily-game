@@ -59,7 +59,7 @@ body{margin:0;background:var(--bg);color:var(--fg);font:16px/1.45 system-ui,-app
 main{width:min(100%,440px);padding:16px 16px 48px;display:flex;flex-direction:column;gap:16px}
 p{margin:0}
 h1,h2{font-size:22px;font-weight:800;line-height:1.2;letter-spacing:-.02em;margin:0}
-.small,.stats,.practice{font-size:14px}
+.small,.stats{font-size:14px}
 .muted,.stat span{color:var(--muted)}
 
 header{display:flex;align-items:baseline;gap:8px}
@@ -72,8 +72,6 @@ header{display:flex;align-items:baseline;gap:8px}
 .help{width:28px;height:28px;border-radius:50%;padding:0;line-height:1;margin-left:auto;align-self:center}
 .btn:focus-visible,.help:focus-visible,svg.board:focus-visible{outline:2px solid var(--fg);outline-offset:2px}
 .actions{display:flex;gap:8px}
-.grid4{display:grid;grid-template-columns:repeat(4,1fr);gap:8px}
-.grid4 .btn{padding:8px 4px;font-size:14px}
 
 .stats{display:flex;flex-wrap:wrap;gap:0 16px}
 .stat strong{font-weight:600;font-variant-numeric:tabular-nums}
@@ -90,7 +88,6 @@ main:has(.result.show) #actions,main:has(.result.show) #msg:empty,main:has(#conf
 .result.show{display:flex}
 .share{width:100%;resize:none;font:inherit;background:var(--soft);color:var(--fg);border:0;border-radius:var(--r);padding:8px 16px}
 #cd{font-variant-numeric:tabular-nums}
-.practice{display:flex;flex-direction:column;gap:8px;margin-top:8px}
 
 .modal{position:fixed;inset:0;z-index:10;background:rgba(0,0,0,.6);display:none;align-items:center;justify-content:center;padding:16px}
 .modal.show{display:flex}
@@ -162,17 +159,6 @@ main:has(.result.show) #actions,main:has(.result.show) #msg:empty,main:has(#conf
       <div class="stat"><span>Racha</span> <strong id="stStreak">0</strong></div>
     </div>
     <p class="small muted" id="nextRow">Próximo puzle en <span id="cd">--:--:--</span></p>
-  </section>
-
-  <section class="practice">
-    <span class="muted">Práctica</span>
-    <div class="grid4">
-      <button class="btn" data-lvl="1">Fácil</button>
-      <button class="btn" data-lvl="3">Media</button>
-      <button class="btn" data-lvl="5">Difícil</button>
-      <button class="btn" data-lvl="0">Experto</button>
-    </div>
-    <button class="btn" id="back" hidden>Volver al puzle de hoy</button>
   </section>
 </main>
 
@@ -313,9 +299,16 @@ function effort(S, E, stations, blocked, cap) {
 const mouth = E => E - N;
 function goalWalls(blocked, E) { const w = blocked.slice(); w[E] = true; return w; }
 
-// Difficulty by weekday (0 = Sunday). Harder = more stations, fewer rocks, fewer perfect tracks,
-// and a longer stretch of dead-ends for the "nearest station first" strategy.
-const DIFF = [
+// Harder = more stations, fewer rocks, fewer perfect tracks, and a longer stretch of dead-ends
+// for the "nearest station first" strategy. The level is internal: it is never shown to the player.
+// From puzzle ALT_FROM on, days alternate between the two LEVELS (by puzzle number parity).
+const ALT_FROM = 10;
+const LEVELS = [
+  { name: 'Difícil', st: 4, rocks: [2, 2], maxSol: 1, minEffort: 1300 },
+  { name: 'Experto', st: 4, rocks: [2, 2], maxSol: 1, minEffort: 2000 },
+];
+// Earlier puzzles went by weekday (0 = Sunday). Kept so those dates still give the same board.
+const OLD_DIFF = [
   { name: 'Experto', st: 4, rocks: [2, 2], maxSol: 1, minEffort: 1500 },
   { name: 'Fácil',   st: 3, rocks: [4, 4], maxSol: 2, minEffort: 150 },
   { name: 'Fácil',   st: 4, rocks: [3, 4], maxSol: 2, minEffort: 250 },
@@ -325,9 +318,8 @@ const DIFF = [
   { name: 'Difícil', st: 4, rocks: [2, 2], maxSol: 1, minEffort: 1000 },
 ];
 
-function generateWith(seed, level, extraRocks = 0) {
+function generateWith(seed, d, extraRocks = 0) {
   const rng = mulberry32(hashStr(seed));
-  const d = DIFF[level];
   const CAP = 3000;
   let fallback = null;
   for (let attempt = 0; attempt < 12000; attempt++) {
@@ -351,15 +343,17 @@ function generateWith(seed, level, extraRocks = 0) {
     if (!res || res.sols < 1) continue;
     if (!(shortestWalk(S, M, stations, walls) < res.minLen)) continue; // reusing a cell must tempt
     const eff = effort(S, M, stations, walls, CAP);
-    const cand = { S, E, stations, blocked, sols: res.sols, minLen: res.minLen + 1, effort: eff, diff: d.name };
+    const cand = { S, E, stations, blocked, sols: res.sols, minLen: res.minLen + 1, effort: eff };
     if (eff >= d.minEffort) return cand;
     if (!fallback || eff > fallback.effort) fallback = cand;
   }
   // Nothing valid at all (rare, only on the hardest settings): search again allowing one more rock.
-  return fallback || generateWith(seed + '+', level, extraRocks + 1);
+  return fallback || generateWith(seed + '+', d, extraRocks + 1);
 }
 
-function generate(dateKey, dow) { return generateWith('gol-v1-' + dateKey, dow); }
+function generate(dateKey, dow, num) {
+  return generateWith('gol-v1-' + dateKey, num >= ALT_FROM ? LEVELS[num % 2] : OLD_DIFF[dow]);
+}
 
 // First perfect track found (simple path S -> E through every station), or null.
 function findPerfect(S, E, stations, blocked) {
@@ -397,8 +391,7 @@ function dayNumber(y, m, d) {
   const pad = n => String(n).padStart(2, '0');
   const dateKey = `${now.getFullYear()}-${pad(now.getMonth() + 1)}-${pad(now.getDate())}`;
   const num = dayNumber(now.getFullYear(), now.getMonth(), now.getDate());
-  const daily = generate(dateKey, now.getDay());
-  let P = daily, practice = false;
+  const P = generate(dateKey, now.getDay(), num);
 
   const store = {
     get(k) { try { const v = localStorage.getItem(k); return v ? JSON.parse(v) : null; } catch (e) { return null; } },
@@ -521,7 +514,7 @@ function dayNumber(y, m, d) {
     if (showSol) msg.textContent = 'Esta era una jugada perfecta.';
   }
 
-  function persist() { if (!practice) store.set(SKEY, { path, resets, done }); }
+  function persist() { store.set(SKEY, { path, resets, done }); }
 
   // ---- input ----
   function cellAt(e) {
@@ -662,7 +655,7 @@ function dayNumber(y, m, d) {
   function shareText(R) {
     const stations = '🟩'.repeat(R.got) + '🟥'.repeat(R.missing);
     const cr = R.cross === 0 ? 'Sin cruces ✨' : '✖️'.repeat(Math.min(R.cross, 8));
-    return `${practice ? 'Gol práctica' : 'Gol #' + num} ⚽ ${P.diff}\n${stations}  ${cr}\nPuntaje ${R.score}/100 · intento ${resets + 1}\n${SITE_URL}`;
+    return `Gol #${num} ⚽\n${stations}  ${cr}\nPuntaje ${R.score}/100 · intento ${resets + 1}\n${SITE_URL}`;
   }
 
   // full text handed to share/clipboard; the on-screen box shows it without the link
@@ -670,7 +663,7 @@ function dayNumber(y, m, d) {
 
   function finish(fresh) {
     const R = calc();
-    if (fresh && !practice) {
+    if (fresh) {
       const st = store.get(TKEY) || { played: 0, perfect: 0, streak: 0, last: '' };
       const y = new Date(now); y.setDate(y.getDate() - 1);
       const yk = `${y.getFullYear()}-${pad(y.getMonth() + 1)}-${pad(y.getDate())}`;
@@ -679,7 +672,7 @@ function dayNumber(y, m, d) {
       st.last = dateKey; store.set(TKEY, st);
     }
     const st = store.get(TKEY) || { played: 1, perfect: R.score === 100 ? 1 : 0, streak: 1 };
-    if (!practice) $('stPlayed').textContent = st.played; $('stPerfect').textContent = st.perfect; $('stStreak').textContent = st.streak;
+    $('stPlayed').textContent = st.played; $('stPerfect').textContent = st.perfect; $('stStreak').textContent = st.streak;
     if (R.score === 100) {
       $('resTitle').textContent = 'Golazo';
       $('resSub').textContent = `Todos tus compañeros y ningún cruce, en el intento ${resets + 1}.`;
@@ -736,45 +729,27 @@ function dayNumber(y, m, d) {
   modal.addEventListener('click', e => { if (e.target === modal) closeHelp(); });
   document.addEventListener('keydown', e => { if (e.key === 'Escape' && modal.classList.contains('show')) closeHelp(); });
 
-  // ---- puzzle setup (daily or practice) ----
-  function applyPuzzle(puz, isPractice) {
-    P = puz; practice = isPractice;
-    path = [P.S]; resets = 0; done = false; dragging = false; pending = false; wrongSide = false;
-    if (!practice) {
-      const saved = store.get(SKEY);
-      if (saved && Array.isArray(saved.path) && saved.path[0] === P.S &&
-          saved.path.every(c => Number.isInteger(c) && c >= 0 && c < CELLS && !P.blocked[c]) &&
-          saved.path.every((c, k) => c !== P.E || saved.path[k - 1] === mouth(P.E))) {
-        path = saved.path; resets = saved.resets | 0; done = !!saved.done;
-        const ke = path.indexOf(P.E);
-        if (ke >= 0 && !done) path = path.slice(0, ke);
-      }
+  // ---- puzzle setup ----
+  function loadSaved() {
+    const saved = store.get(SKEY);
+    if (saved && Array.isArray(saved.path) && saved.path[0] === P.S &&
+        saved.path.every(c => Number.isInteger(c) && c >= 0 && c < CELLS && !P.blocked[c]) &&
+        saved.path.every((c, k) => c !== P.E || saved.path[k - 1] === mouth(P.E))) {
+      path = saved.path; resets = saved.resets | 0; done = !!saved.done;
+      const ke = path.indexOf(P.E);
+      if (ke >= 0 && !done) path = path.slice(0, ke);
     }
-    $('meta').textContent = practice ? `Práctica · ${P.diff}` : `Nº ${num} · ${P.diff}`;
-    $('result').classList.remove('show');
-    $('back').hidden = !practice;
-    $('dailyStats').hidden = practice; $('nextRow').hidden = practice;
-    $('shareLbl').textContent = 'Compartir';
-    showSol = false; solPath = null; $('solBtn').hidden = true; $('solBtn').textContent = 'Ver la solución';
+    $('meta').textContent = `Nº ${num}`;
     render();
     if (done) finish(false);
   }
-  document.querySelectorAll('[data-lvl]').forEach(b => b.addEventListener('click', () => {
-    const old = b.textContent; b.disabled = true; b.textContent = '…';
-    setTimeout(() => {
-      applyPuzzle(generateWith('p' + Math.random() + '-' + Date.now(), +b.dataset.lvl), true);
-      b.disabled = false; b.textContent = old;
-      window.scrollTo({ top: 0, behavior: 'smooth' });
-    }, 30);
-  }));
-  $('back').addEventListener('click', () => { applyPuzzle(daily, false); window.scrollTo({ top: 0, behavior: 'smooth' }); });
 
   document.querySelectorAll('[data-ic]').forEach(el => {
     const k = el.dataset.ic;
     el.innerHTML = k === 'ball' ? spot(50, 50) + ball(50, 50, 21) : k === 'goal' ? goalIcon(0, 0)
       : k === 'mate' ? mate(0, 0, false) : k === 'cone' ? cone(0, 0) : fig(0, 0, 'var(--rival)');
   });
-  applyPuzzle(daily, false);
+  loadSaved();
   if (!store.get('gol1:seen') && !done) openHelp();
 })();
 </script>

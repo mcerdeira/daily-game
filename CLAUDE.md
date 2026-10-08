@@ -31,14 +31,14 @@ Juego web de un puzle por día: llevar la pelota al arco pasando por todos los c
 | `blocked` / `rocks` | Conos y rivales. Son lo mismo; cuál se dibuja sale de `(c + S + E) % 2` y es solo estético |
 | `path` | Recorrido de la pelota, lista de índices de casilla |
 | `cross` | Cruces: visitas repetidas a una casilla |
-| `P` | Puzle activo (el diario o uno de práctica) |
+| `P` | Puzle del día |
 
 Tablero de `N = 5`, casillas indexadas `0..24` por filas (`fila * N + columna`). El SVG usa `viewBox="0 0 500 500"`, 100 unidades por casilla.
 
 ## Reglas
 
 - Movimiento ortogonal a casillas vecinas. No se entra a casillas bloqueadas.
-- El arco mira hacia arriba: solo se entra desde `mouth(E)`, pateando hacia abajo. Desde los costados o desde atrás no patea y aparece un aviso (`wrongSide` / `sideTry()`). La regla está en la entrada (`stepToward`, `pointerdown`, `keydown`), en la validación de `applyPuzzle` y en el generador: cambiar todo junto.
+- El arco mira hacia arriba: solo se entra desde `mouth(E)`, pateando hacia abajo. Desde los costados o desde atrás no patea y aparece un aviso (`wrongSide` / `sideTry()`). La regla está en la entrada (`stepToward`, `pointerdown`, `keydown`), en la validación de `loadSaved` y en el generador: cambiar todo junto.
 - Puntaje: `max(0, 100 − 25 × compañeros que faltan − 10 × cruces)`. Está en `calc()` y también escrito en el modal de ayuda: cambiar los dos.
 - Se patea llevando la pelota al arco desde la casilla de arriba: arrastrándola hasta ahí, tocando el arco o con la flecha hacia abajo. No hay un toque extra para patear.
 - Arrastrar solo patea si el dedo está sobre el arco (`t === P.E` en `stepToward`). Si el arrastre apunta a una casilla más allá y el arco queda en el medio, se frena antes sin patear.
@@ -49,7 +49,7 @@ Tablero de `N = 5`, casillas indexadas `0..24` por filas (`fila * N + columna`).
 
 ## Generación de puzles
 
-`generateWith(seed, level, extraRocks)` prueba hasta 12000 tableros al azar y devuelve el primero que cumple:
+`generateWith(seed, d, extraRocks)` recibe la configuración de dificultad `d` (una fila de `LEVELS` o de `OLD_DIFF`), prueba hasta 12000 tableros al azar y devuelve el primero que cumple:
 
 0. `E` fuera de la fila de arriba y `mouth(E)` sin bloqueo (puede tener un compañero).
 1. Distancia Manhattan entre `S` y `E` de al menos 3.
@@ -61,27 +61,28 @@ Los filtros 2 a 4 se calculan con el arco como pared y `mouth(E)` como destino (
 
 Si ninguno llega a `minEffort`, devuelve el de mayor `effort` entre los que cumplen 1 a 3. Si no hay ninguno, reintenta con seed `+ '+'` y un cono más.
 
-`DIFF` se indexa por día de la semana (`0` = domingo):
+Solo existe el puzle del día: no hay modo práctica. No agregarlo sin avisar.
 
-| Día | Nivel | Compañeros | Bloqueos | `maxSol` | `minEffort` |
-|---|---|---|---|---|---|
-| Dom (0) | Experto | 4 | 2 | 1 | 1500 |
-| Lun (1) | Fácil | 3 | 4 | 2 | 150 |
-| Mar (2) | Fácil | 4 | 3–4 | 2 | 250 |
-| Mié (3) | Media | 4 | 3 | 2 | 450 |
-| Jue (4) | Media | 4 | 2–3 | 1 | 700 |
-| Vie (5) | Difícil | 4 | 2–3 | 1 | 1000 |
-| Sáb (6) | Difícil | 4 | 2 | 1 | 1000 |
+### Dificultad
 
-Los botones de práctica usan esos mismos índices vía `data-lvl`: Fácil `1`, Media `3`, Difícil `5`, Experto `0`. La práctica usa una seed aleatoria, no guarda progreso ni toca las estadísticas.
+La dificultad es un tema interno: no se muestra en la interfaz ni en el texto de compartir. Mantenerlo así.
 
-La generación corre sincrónica al cargar la página. Si se suben los topes o la dificultad, medir el tiempo de carga en celular. Con estos valores, en escritorio tarda hasta unos 170 ms (domingo y sábado, los más lentos); el Experto llega a su `minEffort` más o menos la mitad de los días y el resto usa el mejor tablero encontrado.
+Desde el Nº `ALT_FROM` (10, el 9 de octubre de 2026) los días se alternan entre los dos `LEVELS` según la paridad del número de puzle (`LEVELS[num % 2]`): pares Difícil, impares Experto.
+
+| Nivel | Compañeros | Bloqueos | `maxSol` | `minEffort` |
+|---|---|---|---|---|
+| Difícil | 4 | 2 | 1 | 1300 |
+| Experto | 4 | 2 | 1 | 2000 |
+
+Los puzles anteriores (Nº 1 a 9) salían de `OLD_DIFF`, indexada por día de la semana (`0` = domingo, de Fácil a Experto). Se conserva solo para que esas fechas sigan dando el mismo tablero con `?d=`.
+
+La generación corre sincrónica al cargar la página. Si se suben los topes o la dificultad, medir el tiempo de carga en celular. Con estos valores, en escritorio tarda hasta unos 170 ms; el Difícil llega a su `minEffort` en unos dos de cada tres días y el Experto en uno de cada tres, y el resto usa el mejor tablero encontrado (el `effort` tiene tope 3000, así que subir `minEffort` más allá de 2000 casi no cambia nada).
 
 ### Determinismo (importante)
 
 El puzle del día sale de la seed `'gol-v1-' + dateKey` con `hashStr` + `mulberry32`. Todos los jugadores tienen que ver el mismo tablero, así que cualquier cambio en lo siguiente cambia los puzles de todas las fechas:
 
-- `DIFF`, los filtros de `generateWith` o el orden en que se consume el `rng`.
+- `LEVELS`, `ALT_FROM`, `OLD_DIFF`, los filtros de `generateWith` o el orden en que se consume el `rng`.
 - `mouth`, `goalWalls` (la regla del arco).
 - `hashStr`, `mulberry32`, `countPerfect`, `shortestWalk`, `effort`.
 - El prefijo de la seed.
@@ -102,7 +103,7 @@ Un cambio así a mitad del día le cambia el tablero a quien ya jugó: el progre
 | `gol1:seen` | `1` cuando ya se cerró la ayuda una vez |
 
 - Todo acceso pasa por `store`, que traga los errores: el juego tiene que funcionar sin `localStorage`.
-- Al cargar, `applyPuzzle` valida el `path` guardado contra el tablero actual y lo descarta si no encaja.
+- Al cargar, `loadSaved` valida el `path` guardado contra el tablero actual y lo descarta si no encaja.
 - Si cambia el formato guardado, cambiar el prefijo `gol1:` (se pierden rachas) o migrar.
 
 ## Compartir
@@ -110,14 +111,14 @@ Un cambio así a mitad del día le cambia el tablero a quien ya jugó: el progre
 `shareText` arma:
 
 ```
-Gol #<n> ⚽ <dificultad>
+Gol #<n> ⚽
 🟩🟩🟩🟥  Sin cruces ✨
 Puntaje <p>/100 · intento <k>
 <SITE_URL>
 ```
 
 - En celular usa `navigator.share`; en escritorio copia al portapapeles, con `execCommand('copy')` como respaldo.
-- El texto no revela el recorrido. Mantenerlo así.
+- El texto no revela el recorrido ni la dificultad. Mantenerlo así.
 
 ## Cosas duplicadas que hay que cambiar juntas
 
@@ -137,7 +138,7 @@ Puntaje <p>/100 · intento <k>
 
 ## Festejo del gol
 
-Se dispara en `finalize()`, o sea en cada remate definitivo (con cualquier puntaje, diario o práctica). No se repite al recargar un puzle ya terminado.
+Se dispara en `finalize()`, o sea en cada remate definitivo (con cualquier puntaje). No se repite al recargar un puzle ya terminado.
 
 - **Papelitos y grito**: `celebrate()` agrega a `<body>` una capa `#cheer` (`position:fixed`, `pointer-events:none`, `aria-hidden`) con un `<canvas>` de papelitos y la palabra `GOOOOOOOOL!`, una `<span>` por letra con `--i` para escalonar las animaciones `cheer-pop` y `cheer-bob`. La capa se elimina sola a los 3,6 s (`LIFE`).
 - **Arco**: la variable `kick` queda en `true` por 900 ms después del remate; mientras tanto `render()` envuelve el arco y la pelota en `<g class="kick">`, que tiene la animación CSS `kick`.
