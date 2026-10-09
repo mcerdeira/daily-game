@@ -1,0 +1,95 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Política de privacidad · Gol</title>
+<meta name="description" content="Qué datos guarda Gol, el puzle diario de fútbol, y qué no.">
+<link rel="canonical" href="https://mcerdeira.github.io/daily-game/privacidad.html">
+<meta name="theme-color" id="themeColor" content="#151515">
+<script>
+// Theme is set before the first paint. Dark unless the player picked light in the options.
+(function () {
+  var t = 'dark';
+  try { if (JSON.parse(localStorage.getItem('gol1:theme')) === 'light') t = 'light'; } catch (e) {}
+  document.documentElement.dataset.theme = t;
+  document.getElementById('themeColor').content = t === 'light' ? '#f6f6f3' : '#151515';
+})();
+</script>
+<style>
+:root{
+  box-sizing:border-box;
+  padding-top:env(safe-area-inset-top,0px);
+  padding-bottom:env(safe-area-inset-bottom,0px);
+  --bg:#f6f6f3; --fg:#1b1b1b; --muted:#6a6a66; --soft:rgba(0,0,0,.06);
+  --pitch1:#5cb868; --pitch2:#4fa85b; --lines:rgba(255,255,255,.5);
+  --rival:#d9433a; --mate:#1f6fe0; --skin:#f0c8a3;
+  --good:#1f9d55; --bad:#d9433a; --good-text:#157a3e;
+  --r:10px;
+}
+@media (prefers-color-scheme:dark){
+  :root:not([data-theme="light"]){
+    --bg:#151515; --fg:#ececea; --muted:#9b9b96; --soft:rgba(255,255,255,.09);
+    --pitch1:#2c7a3b; --pitch2:#256b33; --lines:rgba(255,255,255,.28);
+    --rival:#e5564d; --mate:#4a8cf0; --skin:#f0c8a3;
+    --good:#3fbf78; --bad:#e5564d; --good-text:#3fbf78;
+  }
+}
+:root[data-theme="dark"]{
+  --bg:#151515; --fg:#ececea; --muted:#9b9b96; --soft:rgba(255,255,255,.09);
+  --pitch1:#2c7a3b; --pitch2:#256b33; --lines:rgba(255,255,255,.28);
+  --rival:#e5564d; --mate:#4a8cf0; --skin:#f0c8a3;
+  --good:#3fbf78; --bad:#e5564d; --good-text:#3fbf78;
+}
+*,*::before,*::after{box-sizing:inherit}
+html{-webkit-text-size-adjust:100%}
+body{margin:0;background:var(--bg);color:var(--fg);font:16px/1.45 system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;display:flex;justify-content:center;min-height:100vh}
+main{width:min(100%,440px);padding:16px 16px 48px;display:flex;flex-direction:column;gap:16px}
+p,ul{margin:0}
+ul{padding-left:20px;display:flex;flex-direction:column;gap:8px}
+h1,h2{font-weight:800;line-height:1.2;letter-spacing:-.02em;margin:0}
+h1{font-size:22px}
+h2{font-size:16px;margin-top:8px}
+a{color:inherit}
+.small{font-size:14px}
+.muted{color:var(--muted)}
+</style>
+</head>
+<body>
+<main>
+  <p class="small"><a href="./">← Volver al juego</a></p>
+  <h1>Política de privacidad</h1>
+  <p class="small muted">Última actualización: 8 de octubre de 2026</p>
+
+  <p>Gol es un puzle diario de fútbol hecho por Martin Cerdeira. Se juega sin crear una cuenta y sin dar ningún dato personal.</p>
+
+  <h2>Qué se guarda</h2>
+  <p>El juego guarda algunos datos en tu propio dispositivo, usando el almacenamiento local del navegador:</p>
+  <ul>
+    <li>Tu jugada de cada día: el recorrido, los intentos y si ya remataste.</li>
+    <li>Tus estadísticas: partidos jugados, perfectos y racha.</li>
+    <li>Tus preferencias: el tema elegido y si ya viste la ayuda.</li>
+  </ul>
+  <p>Esos datos no salen de tu dispositivo: no se envían a ningún servidor y nadie más puede verlos. Podés borrarlos cuando quieras eliminando los datos del sitio desde la configuración del navegador; al hacerlo se pierden las estadísticas y la racha.</p>
+
+  <h2>Qué no se hace</h2>
+  <ul>
+    <li>No se usan cookies.</li>
+    <li>No hay publicidad ni herramientas de medición o seguimiento.</li>
+    <li>No se piden nombre, correo, ubicación ni ningún otro dato personal.</li>
+  </ul>
+
+  <h2>Compartir el resultado</h2>
+  <p>Si tocás "Compartir", el texto con tu resultado se pasa a la aplicación que elijas o se copia al portapapeles. El juego no lo envía a ningún otro lado.</p>
+
+  <h2>Alojamiento</h2>
+  <p>El sitio está alojado en GitHub Pages. Como cualquier servidor web, GitHub puede registrar datos técnicos de cada visita, por ejemplo la dirección IP, según su propia <a href="https://docs.github.com/es/site-policy/privacy-policies/github-general-privacy-statement" rel="noopener">declaración de privacidad</a>. El juego no tiene acceso a esos registros.</p>
+
+  <h2>Cambios</h2>
+  <p>Si el juego empieza a usar publicidad, medición de visitas u otro servicio de terceros, esta página se va a actualizar antes para explicarlo.</p>
+
+  <h2>Contacto</h2>
+  <p>Por cualquier consulta escribí a <a href="mailto:martincerdeira@gmail.com">martincerdeira@gmail.com</a>.</p>
+</main>
+</body>
+</html>

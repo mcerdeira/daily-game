@@ -79,7 +79,8 @@ header{display:flex;align-items:baseline;gap:8px}
 .btn:disabled{opacity:.35;cursor:default}
 .help{width:28px;height:28px;border-radius:50%;padding:0;line-height:1;margin-left:auto;align-self:center;display:inline-flex;align-items:center;justify-content:center}
 .help+.help{margin-left:0}
-.help svg{width:16px;height:16px;fill:none;stroke:currentColor;stroke-width:2;stroke-linecap:round;stroke-linejoin:round}
+.help.gear{border:0}
+.help svg{width:28px;height:28px;fill:currentColor}
 .btn:focus-visible,.help:focus-visible,svg.board:focus-visible{outline:2px solid var(--fg);outline-offset:2px}
 .actions{display:flex;gap:8px}
 
@@ -129,8 +130,8 @@ main:has(.result.show) #actions,main:has(.result.show) #msg:empty,main:has(#conf
     <h1>Gol</h1>
     <span class="small muted" id="meta"></span>
     <button class="help" id="helpBtn" aria-label="Cómo se juega">?</button>
-    <button class="help" id="optBtn" aria-label="Opciones">
-      <svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="3"/><path d="M12 2v3M12 19v3M2 12h3M19 12h3M4.9 4.9l2.2 2.2M16.9 16.9l2.2 2.2M4.9 19.1l2.2-2.2M16.9 7.1l2.2-2.2"/></svg>
+    <button class="help gear" id="optBtn" aria-label="Opciones">
+      <svg viewBox="0 0 24 24" aria-hidden="true"><path fill-rule="evenodd" d="M9.8,4.1 L10.1,1.2 L13.9,1.2 L14.2,4.1 L16.0,4.9 L18.4,3.0 L21.0,5.6 L19.1,8.0 L19.9,9.8 L22.8,10.1 L22.8,13.9 L19.9,14.2 L19.1,16.0 L21.0,18.4 L18.4,21.0 L16.0,19.1 L14.2,19.9 L13.9,22.8 L10.1,22.8 L9.8,19.9 L8.0,19.1 L5.6,21.0 L3.0,18.4 L4.9,16.0 L4.1,14.2 L1.2,13.9 L1.2,10.1 L4.1,9.8 L4.9,8.0 L3.0,5.6 L5.6,3.0 L8.0,4.9 Z M12,8.4 a3.6,3.6 0 1 0 .01,0 Z"/></svg>
     </button>
   </header>
 
@@ -207,6 +208,7 @@ main:has(.result.show) #actions,main:has(.result.show) #msg:empty,main:has(#conf
       <h3>Acerca de</h3>
       <p>Diseñado por Martin Cerdeira.</p>
       <p>Contacto: <a href="mailto:martincerdeira@gmail.com">martincerdeira@gmail.com</a></p>
+      <p><a href="privacidad.html">Política de privacidad</a></p>
     </div>
     <button class="btn primary" id="optClose">Cerrar</button>
   </div>

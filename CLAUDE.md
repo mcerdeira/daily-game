@@ -4,6 +4,7 @@ Juego web de un puzle por día: llevar la pelota al arco pasando por todos los c
 
 - Publicado en https://mcerdeira.github.io/daily-game/ (GitHub Pages, repo `mcerdeira/daily-game`, rama `main`).
 - Todo el juego vive en `index.html`: HTML, CSS y JS inline, sin dependencias, sin build, sin tests.
+- `privacidad.html` es la política de privacidad (ver más abajo).
 - `og.png` (1200×630) es la imagen de preview de link. Es estática, no hay script que la genere. La actual salió de una captura con Chrome sin interfaz, dibujando un tablero armado a mano con las funciones del juego: la pelota está en la casilla de arriba del arco, que es la única jugada válida para mostrar.
 - `manifest.webmanifest` + `icon-192.png` / `icon-512.png` hacen que Chrome en Android ofrezca "Instalar". No hay service worker a propósito: la app instalada no funciona sin conexión y no hay caché que pueda servir un `index.html` viejo. No agregarlo sin avisar.
 
@@ -132,9 +133,15 @@ Puntaje <p>/100 · intento <k>
 
 ## Opciones y tema
 
-- El botón del engranaje, al lado del `?`, abre el modal `#options`: selector de tema y "Acerca de" (autor y correo de contacto).
+- El botón del engranaje, al lado del `?`, abre el modal `#options`: selector de tema y "Acerca de" (autor, correo de contacto y link a la política de privacidad).
 - El tema por defecto es el oscuro, sin mirar la preferencia del sistema. Un script en el `<head>` pone `data-theme` en `<html>` antes del primer dibujo, leyendo `gol1:theme`; `setTheme` lo cambia y lo guarda.
 - Como `data-theme` siempre está puesto, el bloque `@media (prefers-color-scheme:dark)` solo actúa si ese script no corre.
+
+## Política de privacidad
+
+- `privacidad.html` es una página aparte, estática, enlazada desde Opciones. Dice que el juego solo guarda datos en `localStorage`, sin cookies, publicidad ni medición.
+- Tiene que seguir siendo cierta: si se agrega Analytics, AdSense, otro servicio de terceros o una clave nueva de `localStorage`, actualizarla en el mismo cambio (y la fecha de "Última actualización").
+- Repite los tokens de color y el script de tema del `<head>` de `index.html`: si cambian ahí, cambiarlos también acá.
 
 ## Dibujo
 
