@@ -101,6 +101,7 @@ Un cambio así a mitad del día le cambia el tablero a quien ya jugó: el progre
 | `gol1:YYYY-MM-DD` | `{ path, resets, done }` del puzle de ese día |
 | `gol1:stats` | `{ played, perfect, streak, last }` |
 | `gol1:seen` | `1` cuando ya se cerró la ayuda una vez |
+| `gol1:theme` | `"dark"` o `"light"`, el tema elegido en Opciones |
 
 - Todo acceso pasa por `store`, que traga los errores: el juego tiene que funcionar sin `localStorage`.
 - Al cargar, `loadSaved` valida el `path` guardado contra el tablero actual y lo descarta si no encaja.
@@ -124,10 +125,16 @@ Puntaje <p>/100 · intento <k>
 
 - **URL del sitio**: `SITE_URL` en el JS, `canonical`, `og:url`, `og:image`, `twitter:image`.
 - **Descripción**: `meta description`, `og:description`, `twitter:description`, `description` del manifest y el primer párrafo del modal de ayuda.
-- **Colores**: los tokens de modo oscuro están dos veces, en `@media (prefers-color-scheme:dark)` y en `:root[data-theme="dark"]`. `--bg` además está en los dos `meta theme-color` y en `background_color` / `theme_color` del manifest.
+- **Colores**: los tokens de modo oscuro están dos veces, en `@media (prefers-color-scheme:dark)` y en `:root[data-theme="dark"]`. `--bg` además está en el `meta theme-color` (el valor inicial y los dos que ponen el script del `<head>` y `setTheme`) y en `background_color` / `theme_color` del manifest.
 - **Ruta del sitio**: `id`, `start_url` y `scope` del manifest (`/daily-game/`).
 - **Pelota**: `ball()` en el JS, el favicon (SVG inline en el `<link rel="icon">`, misma pelota con radio 14), `og.png` y los íconos de la app (`icon-192.png`, `icon-512.png`: la pelota del favicon sobre la cancha, dentro del 80% central para que el recorte de Android no la corte).
 - **Aspecto del tablero**: si cambian las piezas o los colores de la cancha, `og.png` queda desactualizada y hay que rehacerla a mano (1200×630).
+
+## Opciones y tema
+
+- El botón del engranaje, al lado del `?`, abre el modal `#options`: selector de tema y "Acerca de" (autor y correo de contacto).
+- El tema por defecto es el oscuro, sin mirar la preferencia del sistema. Un script en el `<head>` pone `data-theme` en `<html>` antes del primer dibujo, leyendo `gol1:theme`; `setTheme` lo cambia y lo guarda.
+- Como `data-theme` siempre está puesto, el bloque `@media (prefers-color-scheme:dark)` solo actúa si ese script no corre.
 
 ## Dibujo
 

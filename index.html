@@ -23,8 +23,16 @@
 <meta name="twitter:image" content="https://mcerdeira.github.io/daily-game/og.png">
 <meta name="twitter:image:alt" content="Cancha de 5 por 5 con el recorrido de la pelota pasando por cuatro compañeros hasta el arco.">
 <link rel="manifest" href="manifest.webmanifest">
-<meta name="theme-color" content="#f6f6f3" media="(prefers-color-scheme:light)">
-<meta name="theme-color" content="#151515" media="(prefers-color-scheme:dark)">
+<meta name="theme-color" id="themeColor" content="#151515">
+<script>
+// Theme is set before the first paint. Dark unless the player picked light in the options.
+(function () {
+  var t = 'dark';
+  try { if (JSON.parse(localStorage.getItem('gol1:theme')) === 'light') t = 'light'; } catch (e) {}
+  document.documentElement.dataset.theme = t;
+  document.getElementById('themeColor').content = t === 'light' ? '#f6f6f3' : '#151515';
+})();
+</script>
 <link rel="apple-touch-icon" href="icon-192.png">
 <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 32 32%22%3E%3Ccircle cx=%2216%22 cy=%2216%22 r=%2214%22 fill=%22%23fff%22/%3E%3Cpolygon points=%2216.0,11.0 20.8,14.4 19.0,20.1 13.0,20.1 11.2,14.4%22 fill=%22%231c1c1c%22/%3E%3Cpath d=%22M16.0,11.0 L16.0,7.3 M20.0,4.9 L25.3,8.8 M20.8,14.4 L24.3,13.3 M27.8,16.4 L25.7,22.6 M19.0,20.1 L21.1,23.0 M19.2,27.3 L12.8,27.3 M13.0,20.1 L10.9,23.0 M6.3,22.6 L4.2,16.4 M11.2,14.4 L7.7,13.3 M6.7,8.8 L12.0,4.9%22 fill=%22none%22 stroke=%22%231c1c1c%22 stroke-width=%221.5%22 stroke-linecap=%22round%22/%3E%3Cpath d=%22M16.0,7.3 L20.0,4.9 L19.1,2.4 A14,14 0 0 0 12.9,2.4 L12.0,4.9 Z M24.3,13.3 L27.8,16.4 L29.9,14.8 A14,14 0 0 0 28.0,8.8 L25.3,8.8 Z M21.1,23.0 L19.2,27.3 L21.5,28.9 A14,14 0 0 0 26.6,25.2 L25.7,22.6 Z M10.9,23.0 L6.3,22.6 L5.4,25.2 A14,14 0 0 0 10.5,28.9 L12.8,27.3 Z M7.7,13.3 L6.7,8.8 L4.0,8.8 A14,14 0 0 0 2.1,14.8 L4.2,16.4 Z%22 fill=%22%231c1c1c%22/%3E%3Ccircle cx=%2216%22 cy=%2216%22 r=%2214%22 fill=%22none%22 stroke=%22%231c1c1c%22 stroke-width=%222%22/%3E%3C/svg%3E">
 <style>
@@ -69,7 +77,9 @@ header{display:flex;align-items:baseline;gap:8px}
 .btn svg{width:20px;height:20px;flex:none;fill:none;stroke:currentColor;stroke-width:2;stroke-linecap:round}
 .btn.primary{background:var(--fg);color:var(--bg)}
 .btn:disabled{opacity:.35;cursor:default}
-.help{width:28px;height:28px;border-radius:50%;padding:0;line-height:1;margin-left:auto;align-self:center}
+.help{width:28px;height:28px;border-radius:50%;padding:0;line-height:1;margin-left:auto;align-self:center;display:inline-flex;align-items:center;justify-content:center}
+.help+.help{margin-left:0}
+.help svg{width:16px;height:16px;fill:none;stroke:currentColor;stroke-width:2;stroke-linecap:round;stroke-linejoin:round}
 .btn:focus-visible,.help:focus-visible,svg.board:focus-visible{outline:2px solid var(--fg);outline-offset:2px}
 .actions{display:flex;gap:8px}
 
@@ -96,6 +106,8 @@ main:has(.result.show) #actions,main:has(.result.show) #msg:empty,main:has(#conf
 .legend li{display:flex;align-items:center;gap:8px}
 .legend svg{width:40px;height:40px;flex:none;background:var(--pitch1);border-radius:var(--r)}
 .legend svg:last-of-type{margin-right:8px}
+.card h3{font-size:14px;font-weight:600;color:var(--muted);margin:0 0 8px}
+.card a{color:inherit}
 
 .kick{transform-box:fill-box;transform-origin:center;animation:kick .7s ease-out}
 @keyframes kick{20%{transform:scale(1.16) rotate(-3deg)}45%{transform:scale(.94) rotate(2deg)}70%{transform:scale(1.05) rotate(-1deg)}}
@@ -117,6 +129,9 @@ main:has(.result.show) #actions,main:has(.result.show) #msg:empty,main:has(#conf
     <h1>Gol</h1>
     <span class="small muted" id="meta"></span>
     <button class="help" id="helpBtn" aria-label="Cómo se juega">?</button>
+    <button class="help" id="optBtn" aria-label="Opciones">
+      <svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="3"/><path d="M12 2v3M12 19v3M2 12h3M19 12h3M4.9 4.9l2.2 2.2M16.9 16.9l2.2 2.2M4.9 19.1l2.2-2.2M16.9 7.1l2.2-2.2"/></svg>
+    </button>
   </header>
 
   <div class="stats">
@@ -175,6 +190,25 @@ main:has(.result.show) #actions,main:has(.result.show) #msg:empty,main:has(#conf
     <p>Arrastrá la pelota o tocá casillas vecinas. Para retroceder, volvé sobre tus pasos o tocá un tramo anterior.</p>
     <p>Empezás con 100 puntos: −25 por compañero que falta, −10 por cruce. Siempre hay una jugada perfecta.</p>
     <button class="btn primary" id="modalClose">Jugar</button>
+  </div>
+</div>
+
+<div class="modal" id="options" role="dialog" aria-modal="true" aria-labelledby="oTitle">
+  <div class="card">
+    <h2 id="oTitle">Opciones</h2>
+    <div>
+      <h3>Tema</h3>
+      <div class="actions">
+        <button class="btn" data-theme-set="dark">Oscuro</button>
+        <button class="btn" data-theme-set="light">Claro</button>
+      </div>
+    </div>
+    <div>
+      <h3>Acerca de</h3>
+      <p>Diseñado por Martin Cerdeira.</p>
+      <p>Contacto: <a href="mailto:martincerdeira@gmail.com">martincerdeira@gmail.com</a></p>
+    </div>
+    <button class="btn primary" id="optClose">Cerrar</button>
   </div>
 </div>
 
@@ -728,6 +762,24 @@ function dayNumber(y, m, d) {
   $('modalClose').addEventListener('click', closeHelp);
   modal.addEventListener('click', e => { if (e.target === modal) closeHelp(); });
   document.addEventListener('keydown', e => { if (e.key === 'Escape' && modal.classList.contains('show')) closeHelp(); });
+
+  // ---- options: theme and about ----
+  const options = $('options'), themeBtns = document.querySelectorAll('[data-theme-set]');
+  function setTheme(t) {
+    document.documentElement.dataset.theme = t;
+    $('themeColor').content = t === 'light' ? '#f6f6f3' : '#151515';
+    themeBtns.forEach(b => {
+      const on = b.dataset.themeSet === t;
+      b.classList.toggle('primary', on); b.setAttribute('aria-pressed', on);
+    });
+  }
+  themeBtns.forEach(b => b.addEventListener('click', () => { setTheme(b.dataset.themeSet); store.set('gol1:theme', b.dataset.themeSet); }));
+  setTheme(document.documentElement.dataset.theme);
+  const closeOptions = () => options.classList.remove('show');
+  $('optBtn').addEventListener('click', () => { options.classList.add('show'); $('optClose').focus(); });
+  $('optClose').addEventListener('click', closeOptions);
+  options.addEventListener('click', e => { if (e.target === options) closeOptions(); });
+  document.addEventListener('keydown', e => { if (e.key === 'Escape') closeOptions(); });
 
   // ---- puzzle setup ----
   function loadSaved() {
