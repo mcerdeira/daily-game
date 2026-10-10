@@ -7,6 +7,7 @@ Juego web de un puzle por día: llevar la pelota al arco pasando por todos los c
 - `privacidad.html` es la política de privacidad (ver más abajo).
 - `og.png` (1200×630) es la imagen de preview de link. Es estática, no hay script que la genere. La actual salió de una captura con Chrome sin interfaz, dibujando un tablero armado a mano con las funciones del juego: la pelota está en la casilla de arriba del arco, que es la única jugada válida para mostrar.
 - `manifest.webmanifest` + `icon-192.png` / `icon-512.png` hacen que Chrome en Android ofrezca "Instalar". No hay service worker a propósito: la app instalada no funciona sin conexión y no hay caché que pueda servir un `index.html` viejo. No agregarlo sin avisar.
+- `daily-game/index.html` solo redirige a la raíz: es la ruta vieja de cuando el sitio estaba en `mcerdeira.github.io/daily-game/`, y hay apps instaladas y links que todavía la abren. El `?v=2` del link al manifest está para que Chrome no use uno viejo en caché; subirlo si cambian `id`, `start_url` o `scope`.
 
 ## Cómo probar
 
