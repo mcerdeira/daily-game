@@ -115,14 +115,14 @@ Un cambio así a mitad del día le cambia el tablero a quien ya jugó: el progre
 `shareText` arma:
 
 ```
-Gol #<n> ⚽ #<Club>
+Gol #<n> ⚽ #GolDiario<Club>
 🟩🟩🟩🟥  Sin cruces ✨
 Puntaje <p>/100 · intento <k>
 <SITE_URL>
 ```
 
 - En celular usa `navigator.share`; en escritorio copia al portapapeles, con `execCommand('copy')` como respaldo.
-- El `#<Club>` solo aparece si hay un club elegido (`tag` en `TEAMS`).
+- El `#GolDiario<Club>` solo aparece si hay un club elegido (`<Club>` es el `tag` de `TEAMS`: `#GolDiarioRiver`, `#GolDiarioSanLorenzo`).
 - El texto no revela el recorrido ni la dificultad. Mantenerlo así.
 
 ## Cosas duplicadas que hay que cambiar juntas

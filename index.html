@@ -749,7 +749,7 @@ function dayNumber(y, m, d) {
   function shareText(R) {
     const stations = '🟩'.repeat(R.got) + '🟥'.repeat(R.missing);
     const cr = R.cross === 0 ? 'Sin cruces ✨' : '✖️'.repeat(Math.min(R.cross, 8));
-    return `Gol #${num} ⚽${team ? ' #' + team.tag : ''}\n${stations}  ${cr}\nPuntaje ${R.score}/100 · intento ${resets + 1}\n${SITE_URL}`;
+    return `Gol #${num} ⚽${team ? ' #GolDiario' + team.tag : ''}\n${stations}  ${cr}\nPuntaje ${R.score}/100 · intento ${resets + 1}\n${SITE_URL}`;
   }
 
   // full text handed to share/clipboard; the on-screen box shows it without the link
