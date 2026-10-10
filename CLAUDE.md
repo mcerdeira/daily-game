@@ -2,7 +2,7 @@
 
 Juego web de un puzle por día: llevar la pelota al arco pasando por todos los compañeros sin pisar dos veces la misma casilla. Al arco solo se entra de frente, desde la casilla de arriba.
 
-- Publicado en https://mcerdeira.github.io/daily-game/ (GitHub Pages, repo `mcerdeira/daily-game`, rama `main`).
+- Publicado en https://goldiario.com.ar/ (GitHub Pages, repo `mcerdeira/daily-game`, rama `main`).
 - Todo el juego vive en `index.html`: HTML, CSS y JS inline, sin dependencias, sin build, sin tests.
 - `privacidad.html` es la política de privacidad (ver más abajo).
 - `og.png` (1200×630) es la imagen de preview de link. Es estática, no hay script que la genere. La actual salió de una captura con Chrome sin interfaz, dibujando un tablero armado a mano con las funciones del juego: la pelota está en la casilla de arriba del arco, que es la única jugada válida para mostrar.
@@ -127,7 +127,7 @@ Puntaje <p>/100 · intento <k>
 - **URL del sitio**: `SITE_URL` en el JS, `canonical`, `og:url`, `og:image`, `twitter:image`.
 - **Descripción**: `meta description`, `og:description`, `twitter:description`, `description` del manifest y el primer párrafo del modal de ayuda.
 - **Colores**: los tokens de modo oscuro están dos veces, en `@media (prefers-color-scheme:dark)` y en `:root[data-theme="dark"]`. `--bg` además está en el `meta theme-color` (el valor inicial y los dos que ponen el script del `<head>` y `setTheme`) y en `background_color` / `theme_color` del manifest.
-- **Ruta del sitio**: `id`, `start_url` y `scope` del manifest (`/daily-game/`).
+- **Ruta del sitio**: `id`, `start_url` y `scope` del manifest (`/`).
 - **Pelota**: `ball()` en el JS, el favicon (SVG inline en el `<link rel="icon">`, misma pelota con radio 14), `og.png` y los íconos de la app (`icon-192.png`, `icon-512.png`: la pelota del favicon sobre la cancha, dentro del 80% central para que el recorte de Android no la corte).
 - **Aspecto del tablero**: si cambian las piezas o los colores de la cancha, `og.png` queda desactualizada y hay que rehacerla a mano (1200×630).
 
