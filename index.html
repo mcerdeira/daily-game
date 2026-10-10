@@ -109,6 +109,10 @@ main:has(.result.show) #actions,main:has(.result.show) #msg:empty,main:has(#conf
 .legend svg:last-of-type{margin-right:8px}
 .card h3{font-size:14px;font-weight:600;color:var(--muted);margin:0 0 8px}
 .card a{color:inherit}
+.defs{position:absolute;width:0;height:0}
+.teams{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+.team{justify-content:flex-start;padding:8px;font-size:14px;line-height:1.2;text-align:left}
+.team svg{width:36px;height:24px;stroke:none;background:var(--pitch1);border-radius:4px}
 
 .kick{transform-box:fill-box;transform-origin:center;animation:kick .7s ease-out}
 @keyframes kick{20%{transform:scale(1.16) rotate(-3deg)}45%{transform:scale(.94) rotate(2deg)}70%{transform:scale(1.05) rotate(-1deg)}}
@@ -125,6 +129,7 @@ main:has(.result.show) #actions,main:has(.result.show) #msg:empty,main:has(#conf
 </style>
 </head>
 <body>
+<svg class="defs" aria-hidden="true"><defs><clipPath id="jersey"><path d="M24,82 C24,58 36,52 50,52 C64,52 76,58 76,82 Z"/></clipPath></defs></svg>
 <main>
   <header>
     <h1>Gol</h1>
@@ -205,12 +210,27 @@ main:has(.result.show) #actions,main:has(.result.show) #msg:empty,main:has(#conf
       </div>
     </div>
     <div>
+      <h3>Club</h3>
+      <div class="actions">
+        <button class="btn" id="teamBtn">Elegir club</button>
+      </div>
+    </div>
+    <div>
       <h3>Acerca de</h3>
       <p>Diseñado por Martin Cerdeira.</p>
+      <p>Sitio no oficial: no tiene vínculo con ningún club.</p>
       <p>Contacto: <a href="mailto:martincerdeira@gmail.com">martincerdeira@gmail.com</a></p>
       <p><a href="privacidad.html">Política de privacidad</a></p>
     </div>
     <button class="btn primary" id="optClose">Cerrar</button>
+  </div>
+</div>
+
+<div class="modal" id="teams" role="dialog" aria-modal="true" aria-labelledby="tTitle">
+  <div class="card">
+    <h2 id="tTitle">¿De qué club sos?</h2>
+    <p>Tus compañeros juegan con su camiseta y el club sale al compartir tu resultado. Lo podés cambiar en Opciones.</p>
+    <div class="teams" id="teamList"></div>
   </div>
 </div>
 
@@ -433,7 +453,35 @@ function dayNumber(y, m, d) {
     get(k) { try { const v = localStorage.getItem(k); return v ? JSON.parse(v) : null; } catch (e) { return null; } },
     set(k, v) { try { localStorage.setItem(k, JSON.stringify(v)); } catch (e) {} }
   };
-  const SKEY = 'gol1:' + dateKey, TKEY = 'gol1:stats';
+  const SKEY = 'gol1:' + dateKey, TKEY = 'gol1:stats', CKEY = 'gol1:team';
+
+  // ---- clubs: name, hashtag and shirt (pattern, base colour, second colour). No crests ----
+  const TEAMS = [
+    ['river', 'River', 'River', 'sash', '#fff', '#e0222b'],
+    ['boca', 'Boca', 'Boca', 'band', '#12408a', '#f8c300'],
+    ['independiente', 'Independiente', 'Independiente', 'plain', '#e0222b'],
+    ['racing', 'Racing', 'Racing', 'stripes', '#7cc0ee', '#fff'],
+    ['sanlorenzo', 'San Lorenzo', 'SanLorenzo', 'stripes', '#1c2f6e', '#d01f2e'],
+    ['huracan', 'Huracán', 'Huracán', 'collar', '#fff', '#e0222b'],
+    ['velez', 'Vélez', 'Vélez', 'vee', '#fff', '#1d4fa0'],
+    ['lanus', 'Lanús', 'Lanús', 'plain', '#7a1532'],
+    ['banfield', 'Banfield', 'Banfield', 'stripes', '#fff', '#0d8a45'],
+    ['platense', 'Platense', 'Platense', 'band', '#fff', '#6b4226'],
+    ['argentinos', 'Argentinos Juniors', 'Argentinos', 'sash', '#e0222b', '#fff'],
+    ['estudiantes', 'Estudiantes', 'Estudiantes', 'stripes', '#e0222b', '#fff'],
+    ['gimnasia', 'Gimnasia de La Plata', 'Gimnasia', 'band', '#fff', '#14284f'],
+    ['central', 'Rosario Central', 'Central', 'stripes', '#1a3f90', '#f8c300'],
+    ['newells', 'Newell\'s', 'Newells', 'halves', '#e0222b', '#1c1c1c'],
+    ['talleres', 'Talleres', 'Talleres', 'stripes', '#14284f', '#fff'],
+    ['belgrano', 'Belgrano', 'Belgrano', 'plain', '#6fb8ea'],
+    ['colon', 'Colón', 'Colón', 'halves', '#e0222b', '#1c1c1c'],
+    ['union', 'Unión', 'Unión', 'stripes', '#fff', '#e0222b']
+  ].map(([id, name, tag, ...kit]) => ({ id, name, tag, kit }));
+  // without a club the figures keep the theme colours; with one, the rivals wear a colour no club uses
+  const MATE_KIT = ['plain', 'var(--mate)'], RIVAL_KIT = ['plain', 'var(--rival)'], AWAY_KIT = ['plain', '#9b4fe0'];
+  let teamId = store.get(CKEY); // club id, 'none', or null while the player was never asked
+  let team = TEAMS.find(t => t.id === teamId) || null;
+  const rivalKit = () => team ? AWAY_KIT : RIVAL_KIT;
 
   // ---- state ----
   let path = [P.S], resets = 0, done = false, dragging = false, pending = false, showSol = false, solPath = null;
@@ -460,14 +508,24 @@ function dayNumber(y, m, d) {
 
   // ---- pitch drawing helpers (each draws inside a 100x100 cell with origin x,y) ----
   const shadow = (x, y, rx) => `<ellipse cx="${x+50}" cy="${y+82}" rx="${rx}" ry="7" fill="rgba(0,0,0,.2)"/>`;
-  const fig = (x, y, jersey) => shadow(x, y, 24) +
-    `<path d="M${x+24},${y+82} C${x+24},${y+58} ${x+36},${y+52} ${x+50},${y+52} C${x+64},${y+52} ${x+76},${y+58} ${x+76},${y+82} Z" fill="${jersey}"/>` +
-    `<circle cx="${x+50}" cy="${y+36}" r="15" fill="var(--skin)"/>`;
+  // shirt of a figure: drawn over the whole body area and cut to its shape by the #jersey clip
+  const shirt = ([kind, a, b]) => {
+    let g = `<rect x="20" y="48" width="60" height="38" fill="${a}"/>`;
+    if (kind === 'stripes') g += [1, 3].map(i => `<rect x="${24 + 10.4 * i}" y="48" width="10.4" height="38" fill="${b}"/>`).join('');
+    else if (kind === 'halves') g += `<rect x="50" y="48" width="30" height="38" fill="${b}"/>`;
+    else if (kind === 'band') g += `<rect x="20" y="62" width="60" height="10" fill="${b}"/>`;
+    else if (kind === 'sash') g += `<path d="M76,52 L24,82" stroke="${b}" stroke-width="11"/>`;
+    else if (kind === 'vee') g += `<path d="M30,50 L50,74 L70,50" fill="none" stroke="${b}" stroke-width="8"/>`;
+    else if (kind === 'collar') g += `<path d="M36,52 Q50,66 64,52" fill="none" stroke="${b}" stroke-width="6"/>`;
+    return `<g clip-path="url(#jersey)">${g}</g>`;
+  };
+  const fig = (x, y, kit) => shadow(x, y, 24) +
+    `<g transform="translate(${x},${y})">${shirt(kit)}<circle cx="50" cy="36" r="15" fill="var(--skin)"/></g>`;
   const cone = (x, y) => shadow(x, y, 26) +
     `<rect x="${x+24}" y="${y+72}" width="52" height="10" rx="3" fill="#e65f00"/>` +
     `<polygon points="${x+50},${y+16} ${x+72},${y+74} ${x+28},${y+74}" fill="#ff7a1a"/>` +
     `<polygon points="${x+43},${y+38} ${x+57},${y+38} ${x+62},${y+54} ${x+38},${y+54}" fill="#fff"/>`;
-  const mate = (x, y, v) => fig(x, y, 'var(--mate)') +
+  const mate = (x, y, v) => fig(x, y, team ? team.kit : MATE_KIT) +
     `<circle cx="${x+50}" cy="${y+50}" r="43" fill="none" stroke="${v ? 'var(--good)' : '#fff'}" stroke-width="5"/>` +
     (v ? `<circle cx="${x+80}" cy="${y+20}" r="15" fill="var(--good)" stroke="#fff" stroke-width="3"/>` +
          `<polyline points="${x+73},${y+20} ${x+78},${y+26} ${x+88},${y+14}" fill="none" stroke="#fff" stroke-width="4.5" stroke-linecap="round" stroke-linejoin="round"/>` : '');
@@ -509,7 +567,7 @@ function dayNumber(y, m, d) {
     s += kicked(goalIcon((P.E % N) * 100, Math.floor(P.E / N) * 100));
     for (let c = 0; c < CELLS; c++) if (P.blocked[c]) {
       const x = (c % N) * 100, y = Math.floor(c / N) * 100;
-      s += ((c + P.S + P.E) % 2) ? cone(x, y) : fig(x, y, 'var(--rival)');
+      s += ((c + P.S + P.E) % 2) ? cone(x, y) : fig(x, y, rivalKit());
     }
     // dotted route of the ball
     const pts = view.map(c => ctr(c).join(',')).join(' ');
@@ -691,7 +749,7 @@ function dayNumber(y, m, d) {
   function shareText(R) {
     const stations = '🟩'.repeat(R.got) + '🟥'.repeat(R.missing);
     const cr = R.cross === 0 ? 'Sin cruces ✨' : '✖️'.repeat(Math.min(R.cross, 8));
-    return `Gol #${num} ⚽\n${stations}  ${cr}\nPuntaje ${R.score}/100 · intento ${resets + 1}\n${SITE_URL}`;
+    return `Gol #${num} ⚽${team ? ' #' + team.tag : ''}\n${stations}  ${cr}\nPuntaje ${R.score}/100 · intento ${resets + 1}\n${SITE_URL}`;
   }
 
   // full text handed to share/clipboard; the on-screen box shows it without the link
@@ -783,6 +841,44 @@ function dayNumber(y, m, d) {
   options.addEventListener('click', e => { if (e.target === options) closeOptions(); });
   document.addEventListener('keydown', e => { if (e.key === 'Escape') closeOptions(); });
 
+  // ---- club: shirt of the teammates and hashtag in the shared result ----
+  const teams = $('teams');
+  $('teamList').innerHTML = [...TEAMS, null].map(t =>
+    `<button class="btn team" data-team="${t ? t.id : 'none'}"><svg viewBox="20 48 60 40" aria-hidden="true">${shirt(t ? t.kit : MATE_KIT)}</svg>${t ? t.name : 'Sin club'}</button>`).join('');
+  const teamBtns = teams.querySelectorAll('[data-team]');
+  function drawLegend() {
+    document.querySelectorAll('[data-ic]').forEach(el => {
+      const k = el.dataset.ic;
+      el.innerHTML = k === 'ball' ? spot(50, 50) + ball(50, 50, 21) : k === 'goal' ? goalIcon(0, 0)
+        : k === 'mate' ? mate(0, 0, false) : k === 'cone' ? cone(0, 0) : fig(0, 0, rivalKit());
+    });
+  }
+  function showTeam() {
+    teamBtns.forEach(b => {
+      const on = b.dataset.team === teamId;
+      b.classList.toggle('primary', on); b.setAttribute('aria-pressed', on);
+    });
+    $('teamBtn').textContent = team ? `${team.name} · Cambiar` : 'Elegir club';
+    drawLegend();
+  }
+  function openTeams() { teams.classList.add('show'); (teams.querySelector('.primary') || teamBtns[0]).focus(); }
+  function closeTeams() {
+    teams.classList.remove('show');
+    // closed without choosing: counts as no club, so the question is not asked again
+    if (teamId === null) { teamId = 'none'; store.set(CKEY, teamId); showTeam(); }
+    if (!store.get('gol1:seen') && !done) openHelp();
+  }
+  teamBtns.forEach(b => b.addEventListener('click', () => {
+    teamId = b.dataset.team; team = TEAMS.find(t => t.id === teamId) || null;
+    store.set(CKEY, teamId);
+    showTeam(); render();
+    if (done) finish(false); // the shared text carries the club
+    closeTeams();
+  }));
+  $('teamBtn').addEventListener('click', () => { closeOptions(); openTeams(); });
+  teams.addEventListener('click', e => { if (e.target === teams) closeTeams(); });
+  document.addEventListener('keydown', e => { if (e.key === 'Escape' && teams.classList.contains('show')) closeTeams(); });
+
   // ---- puzzle setup ----
   function loadSaved() {
     const saved = store.get(SKEY);
@@ -798,13 +894,10 @@ function dayNumber(y, m, d) {
     if (done) finish(false);
   }
 
-  document.querySelectorAll('[data-ic]').forEach(el => {
-    const k = el.dataset.ic;
-    el.innerHTML = k === 'ball' ? spot(50, 50) + ball(50, 50, 21) : k === 'goal' ? goalIcon(0, 0)
-      : k === 'mate' ? mate(0, 0, false) : k === 'cone' ? cone(0, 0) : fig(0, 0, 'var(--rival)');
-  });
+  showTeam();
   loadSaved();
-  if (!store.get('gol1:seen') && !done) openHelp();
+  if (teamId === null) openTeams();
+  else if (!store.get('gol1:seen') && !done) openHelp();
 })();
 </script>
 </body>

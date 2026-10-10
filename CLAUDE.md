@@ -29,7 +29,7 @@ Juego web de un puzle por día: llevar la pelota al arco pasando por todos los c
 | `S` | Casilla de salida (círculo blanco) |
 | `E` | Arco |
 | `mouth(E)` | Casilla de arriba del arco (`E - N`), la única desde la que se patea |
-| `stations` | Compañeros (camiseta azul) |
+| `stations` | Compañeros (camiseta del club elegido, o azul sin club) |
 | `blocked` / `rocks` | Conos y rivales. Son lo mismo; cuál se dibuja sale de `(c + S + E) % 2` y es solo estético |
 | `path` | Recorrido de la pelota, lista de índices de casilla |
 | `cross` | Cruces: visitas repetidas a una casilla |
@@ -104,6 +104,7 @@ Un cambio así a mitad del día le cambia el tablero a quien ya jugó: el progre
 | `gol1:stats` | `{ played, perfect, streak, last }` |
 | `gol1:seen` | `1` cuando ya se cerró la ayuda una vez |
 | `gol1:theme` | `"dark"` o `"light"`, el tema elegido en Opciones |
+| `gol1:team` | Id del club elegido (`"river"`, `"boca"`...) o `"none"` si eligió "Sin club" o cerró el selector |
 
 - Todo acceso pasa por `store`, que traga los errores: el juego tiene que funcionar sin `localStorage`.
 - Al cargar, `loadSaved` valida el `path` guardado contra el tablero actual y lo descarta si no encaja.
@@ -114,13 +115,14 @@ Un cambio así a mitad del día le cambia el tablero a quien ya jugó: el progre
 `shareText` arma:
 
 ```
-Gol #<n> ⚽
+Gol #<n> ⚽ #<Club>
 🟩🟩🟩🟥  Sin cruces ✨
 Puntaje <p>/100 · intento <k>
 <SITE_URL>
 ```
 
 - En celular usa `navigator.share`; en escritorio copia al portapapeles, con `execCommand('copy')` como respaldo.
+- El `#<Club>` solo aparece si hay un club elegido (`tag` en `TEAMS`).
 - El texto no revela el recorrido ni la dificultad. Mantenerlo así.
 
 ## Cosas duplicadas que hay que cambiar juntas
@@ -138,6 +140,14 @@ Puntaje <p>/100 · intento <k>
 - El tema por defecto es el oscuro, sin mirar la preferencia del sistema. Un script en el `<head>` pone `data-theme` en `<html>` antes del primer dibujo, leyendo `gol1:theme`; `setTheme` lo cambia y lo guarda.
 - Como `data-theme` siempre está puesto, el bloque `@media (prefers-color-scheme:dark)` solo actúa si ese script no corre.
 
+## Club
+
+- El jugador elige su club en el modal `#teams`, que se abre solo la primera vez (mientras `gol1:team` no existe, antes que la ayuda) y después desde Opciones. Cerrarlo sin elegir guarda `"none"` para no volver a preguntar.
+- El club es solo local: cambia la camiseta de los compañeros y agrega el hashtag al compartir. No hay ranking ni servidor. No agregarlos sin avisar.
+- `TEAMS` tiene, por club: id, nombre, hashtag y camiseta (`kit`: patrón, color base, segundo color). Los patrones los dibuja `shirt()`: `plain`, `stripes`, `halves`, `band`, `sash`, `vee`, `collar`.
+- Sin escudos, logos ni marcas de indumentaria: solo colores y diseño de la camiseta. En Opciones y en `privacidad.html` dice que el sitio no es oficial. Mantener las dos cosas.
+- Con un club elegido los rivales usan `AWAY_KIT` (violeta, un color que no usa ningún club de la lista). Sin club, compañeros y rivales siguen con `--mate` y `--rival`, que es el aspecto de `og.png`.
+
 ## Política de privacidad
 
 - `privacidad.html` es una página aparte, estática, enlazada desde Opciones. Dice que el juego solo guarda datos en `localStorage`, sin cookies, publicidad ni medición.
@@ -147,7 +157,8 @@ Puntaje <p>/100 · intento <k>
 ## Dibujo
 
 - `render()` reconstruye todo el SVG con `innerHTML` en cada cambio de estado y actualiza el HUD. No hay DOM persistente dentro del tablero, así que una animación dentro del tablero se reinicia en cada `render()`.
-- Cada pieza es una función que devuelve un string SVG para una casilla de 100×100: `fig`, `cone`, `mate`, `ball`, `goalIcon`, `spot`. El modal de ayuda reutiliza esas mismas funciones vía `data-ic`.
+- Cada pieza es una función que devuelve un string SVG para una casilla de 100×100: `fig`, `cone`, `mate`, `ball`, `goalIcon`, `spot`. El modal de ayuda reutiliza esas mismas funciones vía `data-ic` (`drawLegend`, que se vuelve a llamar al cambiar de club).
+- La forma del cuerpo de las figuras está en el `clipPath#jersey`, en un SVG vacío al principio del `<body>`: `shirt()` pinta la camiseta sobre toda la zona y ese recorte le da la forma. Lo usan el tablero, la ayuda y el selector de club.
 - El arco se dibuja visto desde arriba: palos y boca abierta en el borde superior, red cerrando costados y fondo. La casilla de arriba no lleva ninguna marca (se probó un área chica y se sacó por ser demasiada información visual).
 - Usar las variables CSS (`--pitch1`, `--mate`, `--rival`, `--good`, `--bad`...) para que funcionen los dos temas.
 
