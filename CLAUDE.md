@@ -6,6 +6,7 @@ Juego web de un puzle por día: llevar la pelota al arco pasando por todos los c
 - Todo el juego vive en `index.html`: HTML, CSS y JS inline, sin dependencias, sin build, sin tests.
 - `privacidad.html` es la política de privacidad (ver más abajo).
 - `ads.txt` autoriza a Google a vender anuncios del sitio (ver "Publicidad").
+- `como-se-juega.html` y `acerca.html` son páginas de texto, estáticas (ver "Páginas de contenido"). `sitemap.xml` lista las cuatro páginas y `robots.txt` apunta al sitemap: agregar ahí cualquier página nueva.
 - `og.png` (1200×630) es la imagen de preview de link. Es estática, no hay script que la genere. La actual salió de una captura con Chrome sin interfaz, dibujando un tablero armado a mano con las funciones del juego: la pelota está en la casilla de arriba del arco, que es la única jugada válida para mostrar.
 - `manifest.webmanifest` + `icon-192.png` / `icon-512.png` hacen que Chrome en Android ofrezca "Instalar". No hay service worker a propósito: la app instalada no funciona sin conexión y no hay caché que pueda servir un `index.html` viejo. No agregarlo sin avisar.
 - `daily-game/index.html` solo redirige a la raíz: es la ruta vieja de cuando el sitio estaba en `mcerdeira.github.io/daily-game/`, y hay apps instaladas y links que todavía la abren. El `?v=2` del link al manifest está para que Chrome no use uno viejo en caché; subirlo si cambian `id`, `start_url` o `scope`.
@@ -151,10 +152,18 @@ Puntaje <p>/100 · intento <k>
 
 ## Publicidad (AdSense)
 
-- El script de AdSense está en el `<head>` de `index.html` (no en `privacidad.html`). Es la única dependencia externa del sitio.
-- El ID de editor está dos veces y hay que cambiarlo junto: `client=ca-pub-…` en ese script y `pub-…` en `ads.txt`.
+- El script de AdSense está en el `<head>` de `index.html`, `como-se-juega.html` y `acerca.html` (no en `privacidad.html`). Es la única dependencia externa del sitio.
+- El ID de editor hay que cambiarlo junto en todos lados: `client=ca-pub-…` en esos scripts y `pub-…` en `ads.txt`.
 - No hay bloques de anuncios en la página ni anuncios automáticos activados. Si se agregan, que no tapen el tablero ni se metan en el arrastre: los anclados y los de pantalla completa molestan al jugar.
 - El juego tiene que seguir funcionando si el script no carga (bloqueadores).
+
+## Páginas de contenido
+
+- `como-se-juega.html` (reglas, puntaje, controles, consejos, preguntas frecuentes) y `acerca.html` (qué es, cómo se generan los puzles, contacto). Existen para que el sitio tenga texto visible fuera de los modales, que es lo que mira la revisión de AdSense y lo que indexa Google.
+- Están enlazadas desde el `<footer>` de `index.html`, y cada página estática enlaza a las otras desde el suyo.
+- Repiten lo que dice el juego: si cambian las reglas, el puntaje, los controles, las estadísticas, el texto de compartir o los filtros del generador, revisar las dos páginas.
+- No mencionan la dificultad ni cuántas jugadas perfectas hay (solo "al menos una"). Mantenerlo así.
+- Igual que `privacidad.html`, repiten los tokens de color y el script de tema de `index.html`.
 
 ## Política de privacidad
 

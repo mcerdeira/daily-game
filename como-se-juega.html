@@ -1,0 +1,136 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Cómo se juega · Gol</title>
+<meta name="description" content="Reglas, puntaje y consejos para Gol, el puzle diario de fútbol: cómo mover la pelota, cómo se entra al arco y cómo lograr la jugada perfecta.">
+<link rel="canonical" href="https://goldiario.com.ar/como-se-juega.html">
+<meta name="theme-color" id="themeColor" content="#151515">
+<script>
+// Theme is set before the first paint. Dark unless the player picked light in the options.
+(function () {
+  var t = 'dark';
+  try { if (JSON.parse(localStorage.getItem('gol1:theme')) === 'light') t = 'light'; } catch (e) {}
+  document.documentElement.dataset.theme = t;
+  document.getElementById('themeColor').content = t === 'light' ? '#f6f6f3' : '#151515';
+})();
+</script>
+<style>
+:root{
+  box-sizing:border-box;
+  padding-top:env(safe-area-inset-top,0px);
+  padding-bottom:env(safe-area-inset-bottom,0px);
+  --bg:#f6f6f3; --fg:#1b1b1b; --muted:#6a6a66; --soft:rgba(0,0,0,.06);
+  --pitch1:#5cb868; --pitch2:#4fa85b; --lines:rgba(255,255,255,.5);
+  --rival:#d9433a; --mate:#1f6fe0; --skin:#f0c8a3;
+  --good:#1f9d55; --bad:#d9433a; --good-text:#157a3e;
+  --r:10px;
+}
+@media (prefers-color-scheme:dark){
+  :root:not([data-theme="light"]){
+    --bg:#151515; --fg:#ececea; --muted:#9b9b96; --soft:rgba(255,255,255,.09);
+    --pitch1:#2c7a3b; --pitch2:#256b33; --lines:rgba(255,255,255,.28);
+    --rival:#e5564d; --mate:#4a8cf0; --skin:#f0c8a3;
+    --good:#3fbf78; --bad:#e5564d; --good-text:#3fbf78;
+  }
+}
+:root[data-theme="dark"]{
+  --bg:#151515; --fg:#ececea; --muted:#9b9b96; --soft:rgba(255,255,255,.09);
+  --pitch1:#2c7a3b; --pitch2:#256b33; --lines:rgba(255,255,255,.28);
+  --rival:#e5564d; --mate:#4a8cf0; --skin:#f0c8a3;
+  --good:#3fbf78; --bad:#e5564d; --good-text:#3fbf78;
+}
+*,*::before,*::after{box-sizing:inherit}
+html{-webkit-text-size-adjust:100%}
+body{margin:0;background:var(--bg);color:var(--fg);font:16px/1.45 system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;display:flex;justify-content:center;min-height:100vh}
+main{width:min(100%,440px);padding:16px 16px 48px;display:flex;flex-direction:column;gap:16px}
+p,ul{margin:0}
+ul{padding-left:20px;display:flex;flex-direction:column;gap:8px}
+h1,h2{font-weight:800;line-height:1.2;letter-spacing:-.02em;margin:0}
+h1{font-size:22px}
+h2{font-size:16px;margin-top:8px}
+a{color:inherit}
+.small{font-size:14px}
+.muted{color:var(--muted)}
+img{display:block;width:100%;height:auto;border-radius:var(--r)}
+footer{display:flex;flex-wrap:wrap;gap:8px 16px;margin-top:16px}
+</style>
+<script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-7832717533302992" crossorigin="anonymous"></script>
+</head>
+<body>
+<main>
+  <p class="small"><a href="./">← Volver al juego</a></p>
+  <h1>Cómo se juega</h1>
+  <p>Gol es un puzle diario de fútbol. Tenés una cancha de 5 por 5 casillas, una pelota, cuatro compañeros y un arco. El objetivo es llevar la pelota al arco pasando por todos tus compañeros, sin pisar dos veces la misma casilla.</p>
+  <img src="og.png" width="1200" height="630" alt="Cancha de 5 por 5 con el recorrido de la pelota pasando por cuatro compañeros hasta el arco.">
+
+  <h2>Las piezas</h2>
+  <ul>
+    <li><strong>La pelota</strong> arranca en la casilla de salida, marcada con un círculo blanco.</li>
+    <li><strong>Los compañeros</strong> son las figuras con tu camiseta. Para pasarles la pelota alcanza con pisar su casilla.</li>
+    <li><strong>Los conos y los rivales</strong> ocupan casillas por las que no se puede pasar. Los dos funcionan igual: son obstáculos.</li>
+    <li><strong>El arco</strong> es donde termina la jugada.</li>
+  </ul>
+
+  <h2>Cómo se mueve la pelota</h2>
+  <p>La pelota avanza de a una casilla, hacia arriba, abajo, izquierda o derecha. No se mueve en diagonal ni salta casillas.</p>
+  <ul>
+    <li><strong>Con el dedo o el mouse:</strong> arrastrá la pelota por la cancha, o tocá una casilla vecina para avanzar un paso.</li>
+    <li><strong>Con el teclado:</strong> usá las flechas con la cancha enfocada.</li>
+    <li><strong>Para retroceder:</strong> volvé a la casilla anterior y se deshace el último paso. También podés tocar cualquier tramo anterior del recorrido para cortarlo hasta ahí.</li>
+    <li><strong>Para empezar de nuevo:</strong> el botón "Borrar" reinicia el recorrido y suma un intento.</li>
+  </ul>
+
+  <h2>El arco</h2>
+  <p>El arco mira hacia arriba, así que solo se entra de frente: desde la casilla que tiene justo encima, pateando hacia abajo. Desde los costados o desde atrás la pelota no entra y el juego te avisa.</p>
+  <p>Se patea llevando la pelota al arco desde esa casilla: arrastrándola hasta ahí, tocando el arco o con la flecha hacia abajo.</p>
+  <p>Si la jugada es perfecta, el gol vale directo. Si te falta algún compañero o hiciste algún cruce, el juego te pregunta antes: "Seguir" te deja corregir el recorrido y "Rematar" lo da por terminado.</p>
+  <p><strong>Rematar es definitivo.</strong> Hay un solo resultado por día.</p>
+
+  <h2>El puntaje</h2>
+  <p>Empezás con 100 puntos y se descuenta así:</p>
+  <ul>
+    <li><strong>25 puntos</strong> por cada compañero que no recibió la pelota.</li>
+    <li><strong>10 puntos</strong> por cada cruce, es decir, por cada vez que la pelota vuelve a pasar por una casilla que ya había pisado.</li>
+  </ul>
+  <p>El puntaje nunca baja de cero. Una jugada perfecta es la que llega al arco con 100: todos los compañeros y ningún cruce. Todos los días hay al menos una.</p>
+  <p>Si terminás con menos de 100, aparece el botón "Ver la solución", que alterna entre tu jugada y una perfecta.</p>
+
+  <h2>Intentos</h2>
+  <p>Mientras no remates podés probar todo lo que quieras. Retroceder no cuenta; lo que cuenta es "Borrar": cada vez que lo usás empieza un intento nuevo. El número de intento aparece en el resultado, así que no es lo mismo un golazo en el intento 1 que en el 6.</p>
+
+  <h2>Un puzle por día</h2>
+  <p>Hay un solo puzle por día y es el mismo para todo el mundo. Cambia a la medianoche, según la hora de tu dispositivo. Después de rematar, el juego muestra cuánto falta para el próximo.</p>
+  <p>El juego lleva tres estadísticas: partidos jugados, jugadas perfectas y racha, que es la cantidad de días seguidos que jugaste. Se guardan en tu dispositivo, no en una cuenta.</p>
+
+  <h2>Compartir el resultado</h2>
+  <p>Al terminar podés compartir tu resultado. El texto muestra un cuadrado verde por cada compañero que recibió la pelota y uno rojo por cada uno que faltó, los cruces, el puntaje y el intento. No muestra el recorrido, así que no le arruina el puzle a nadie.</p>
+
+  <h2>Tu club</h2>
+  <p>La primera vez el juego te pregunta de qué club sos hincha. Si elegís uno, tus compañeros salen a la cancha con los colores de esa camiseta y el resultado que compartís lleva el hashtag del club. Se puede cambiar o sacar cuando quieras desde Opciones.</p>
+
+  <h2>Consejos</h2>
+  <ul>
+    <li><strong>Empezá por el final.</strong> Al arco se entra por una sola casilla, la de arriba. Pensá en esa casilla como el verdadero destino y fijate por dónde se puede llegar a ella.</li>
+    <li><strong>Desconfiá del camino corto.</strong> El recorrido más directo entre compañeros casi siempre obliga a pisar dos veces una casilla. La jugada perfecta suele dar una vuelta más larga.</li>
+    <li><strong>Mirá los rincones.</strong> Un compañero en una esquina o pegado a un obstáculo tiene pocas entradas y pocas salidas. Esos son los que definen el orden.</li>
+    <li><strong>No te encierres.</strong> Cada casilla que pisás es una pared para lo que sigue. Antes de meterte en un pasillo, fijate si tiene salida.</li>
+    <li><strong>No hace falta pisar toda la cancha.</strong> Lo único obligatorio son los compañeros. Pueden quedar casillas libres.</li>
+    <li><strong>Probá sin miedo.</strong> Hasta que rematás no se pierde nada. Retroceder es gratis.</li>
+  </ul>
+
+  <h2>Preguntas frecuentes</h2>
+  <p><strong>¿Puedo volver a jugar el puzle de hoy?</strong><br>No. Una vez que rematás, ese es tu resultado del día. Mañana hay otro.</p>
+  <p><strong>¿Puedo jugar puzles de días anteriores?</strong><br>No, solo existe el del día.</p>
+  <p><strong>¿Hace falta registrarse o instalar algo?</strong><br>No. Se juega desde el navegador, sin cuenta. En Android, Chrome ofrece instalarlo como aplicación, pero igual necesita conexión.</p>
+  <p><strong>¿Por qué mi racha volvió a empezar?</strong><br>La racha cuenta días seguidos. Si un día no jugás, arranca de nuevo. También se pierde si borrás los datos del navegador o cambiás de dispositivo, porque todo se guarda ahí.</p>
+  <p><strong>¿Siempre tiene solución?</strong><br>Sí. Todos los puzles tienen al menos una jugada de 100 puntos.</p>
+
+  <footer class="small muted">
+    <a href="acerca.html">Acerca de</a>
+    <a href="privacidad.html">Privacidad</a>
+  </footer>
+</main>
+</body>
+</html>

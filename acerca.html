@@ -1,0 +1,100 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Acerca de · Gol</title>
+<meta name="description" content="Qué es Gol, el puzle diario de fútbol: quién lo hace, cómo se arman los puzles de cada día y cómo contactar al autor.">
+<link rel="canonical" href="https://goldiario.com.ar/acerca.html">
+<meta name="theme-color" id="themeColor" content="#151515">
+<script>
+// Theme is set before the first paint. Dark unless the player picked light in the options.
+(function () {
+  var t = 'dark';
+  try { if (JSON.parse(localStorage.getItem('gol1:theme')) === 'light') t = 'light'; } catch (e) {}
+  document.documentElement.dataset.theme = t;
+  document.getElementById('themeColor').content = t === 'light' ? '#f6f6f3' : '#151515';
+})();
+</script>
+<style>
+:root{
+  box-sizing:border-box;
+  padding-top:env(safe-area-inset-top,0px);
+  padding-bottom:env(safe-area-inset-bottom,0px);
+  --bg:#f6f6f3; --fg:#1b1b1b; --muted:#6a6a66; --soft:rgba(0,0,0,.06);
+  --pitch1:#5cb868; --pitch2:#4fa85b; --lines:rgba(255,255,255,.5);
+  --rival:#d9433a; --mate:#1f6fe0; --skin:#f0c8a3;
+  --good:#1f9d55; --bad:#d9433a; --good-text:#157a3e;
+  --r:10px;
+}
+@media (prefers-color-scheme:dark){
+  :root:not([data-theme="light"]){
+    --bg:#151515; --fg:#ececea; --muted:#9b9b96; --soft:rgba(255,255,255,.09);
+    --pitch1:#2c7a3b; --pitch2:#256b33; --lines:rgba(255,255,255,.28);
+    --rival:#e5564d; --mate:#4a8cf0; --skin:#f0c8a3;
+    --good:#3fbf78; --bad:#e5564d; --good-text:#3fbf78;
+  }
+}
+:root[data-theme="dark"]{
+  --bg:#151515; --fg:#ececea; --muted:#9b9b96; --soft:rgba(255,255,255,.09);
+  --pitch1:#2c7a3b; --pitch2:#256b33; --lines:rgba(255,255,255,.28);
+  --rival:#e5564d; --mate:#4a8cf0; --skin:#f0c8a3;
+  --good:#3fbf78; --bad:#e5564d; --good-text:#3fbf78;
+}
+*,*::before,*::after{box-sizing:inherit}
+html{-webkit-text-size-adjust:100%}
+body{margin:0;background:var(--bg);color:var(--fg);font:16px/1.45 system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;display:flex;justify-content:center;min-height:100vh}
+main{width:min(100%,440px);padding:16px 16px 48px;display:flex;flex-direction:column;gap:16px}
+p,ul{margin:0}
+ul{padding-left:20px;display:flex;flex-direction:column;gap:8px}
+h1,h2{font-weight:800;line-height:1.2;letter-spacing:-.02em;margin:0}
+h1{font-size:22px}
+h2{font-size:16px;margin-top:8px}
+a{color:inherit}
+.small{font-size:14px}
+.muted{color:var(--muted)}
+img{display:block;width:100%;height:auto;border-radius:var(--r)}
+footer{display:flex;flex-wrap:wrap;gap:8px 16px;margin-top:16px}
+</style>
+<script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-7832717533302992" crossorigin="anonymous"></script>
+</head>
+<body>
+<main>
+  <p class="small"><a href="./">← Volver al juego</a></p>
+  <h1>Acerca de Gol</h1>
+  <p>Gol es un puzle diario de fútbol diseñado por Martin Cerdeira. Cada día hay una cancha nueva, la misma para todo el mundo, y una sola oportunidad de resolverla.</p>
+
+  <h2>La idea</h2>
+  <p>Es un puzle de recorrido: hay que encontrar un camino que pase por todos los compañeros y termine en el arco sin pisar dos veces la misma casilla. Las reglas se aprenden en un minuto y una partida dura lo que tardás en ver la jugada.</p>
+  <p>El arco tiene su propia regla: solo se entra de frente. Eso hace que la última casilla del recorrido esté decidida de antemano y que muchas jugadas que parecen buenas no sirvan.</p>
+  <p>Las reglas completas, el puntaje y algunos consejos están en <a href="como-se-juega.html">Cómo se juega</a>.</p>
+
+  <h2>Cómo se arman los puzles</h2>
+  <p>Los puzles no están escritos a mano ni guardados en un servidor. Cada cancha se genera en tu dispositivo a partir de la fecha, y por eso todos ven la misma el mismo día.</p>
+  <p>Para elegir la cancha del día, el juego prueba miles de tableros posibles y busca uno que cumpla tres cosas:</p>
+  <ul>
+    <li>Que tenga una jugada perfecta: todos los compañeros, ningún cruce.</li>
+    <li>Que el camino más corto no sea el perfecto, para que haya una tentación que evitar.</li>
+    <li>Que no salga a la primera yendo siempre al compañero más cercano.</li>
+  </ul>
+  <p>El primer puzle, el Nº 1, fue el del 30 de septiembre de 2026.</p>
+
+  <h2>Sin cuenta</h2>
+  <p>Gol se juega sin registrarse. Tu jugada, tus estadísticas y tu club se guardan en tu propio dispositivo. No hay ranking ni tabla de posiciones: el resultado es tuyo, y si querés lo compartís.</p>
+
+  <h2>Clubes</h2>
+  <p>Podés elegir un club para que tus compañeros jueguen con esos colores. Gol es un sitio no oficial y no tiene vínculo con ningún club: no usa escudos ni marcas, solo los colores de la camiseta, y los nombres aparecen únicamente para que indiques de cuál sos hincha.</p>
+
+  <h2>Publicidad</h2>
+  <p>El juego es gratis y el sitio usa publicidad de Google AdSense. Qué implica eso para tus datos está explicado en la <a href="privacidad.html">política de privacidad</a>.</p>
+
+  <h2>Contacto</h2>
+  <p>Si encontrás un error, tenés una idea o querés avisar que falta tu club, escribí a <a href="mailto:martincerdeira@gmail.com">martincerdeira@gmail.com</a>.</p>
+
+  <footer class="small muted">
+    <a href="como-se-juega.html">Cómo se juega</a>
+    <a href="privacidad.html">Privacidad</a>
+  </footer>
+</main>
+</body>
+</html>
