@@ -5,6 +5,7 @@ Juego web de un puzle por día: llevar la pelota al arco pasando por todos los c
 - Publicado en https://goldiario.com.ar/ (GitHub Pages, repo `mcerdeira/daily-game`, rama `main`).
 - Todo el juego vive en `index.html`: HTML, CSS y JS inline, sin dependencias, sin build, sin tests.
 - `privacidad.html` es la política de privacidad (ver más abajo).
+- `ads.txt` autoriza a Google a vender anuncios del sitio (ver "Publicidad").
 - `og.png` (1200×630) es la imagen de preview de link. Es estática, no hay script que la genere. La actual salió de una captura con Chrome sin interfaz, dibujando un tablero armado a mano con las funciones del juego: la pelota está en la casilla de arriba del arco, que es la única jugada válida para mostrar.
 - `manifest.webmanifest` + `icon-192.png` / `icon-512.png` hacen que Chrome en Android ofrezca "Instalar". No hay service worker a propósito: la app instalada no funciona sin conexión y no hay caché que pueda servir un `index.html` viejo. No agregarlo sin avisar.
 - `daily-game/index.html` solo redirige a la raíz: es la ruta vieja de cuando el sitio estaba en `mcerdeira.github.io/daily-game/`, y hay apps instaladas y links que todavía la abren. El `?v=2` del link al manifest está para que Chrome no use uno viejo en caché; subirlo si cambian `id`, `start_url` o `scope`.
@@ -148,10 +149,17 @@ Puntaje <p>/100 · intento <k>
 - Sin escudos, logos ni marcas de indumentaria: solo colores y diseño de la camiseta. En Opciones y en `privacidad.html` dice que el sitio no es oficial. Mantener las dos cosas.
 - Con un club elegido los rivales usan `AWAY_KIT` (violeta, un color que no usa ningún club de la lista). Sin club, compañeros y rivales siguen con `--mate` y `--rival`, que es el aspecto de `og.png`.
 
+## Publicidad (AdSense)
+
+- El script de AdSense está en el `<head>` de `index.html` (no en `privacidad.html`). Es la única dependencia externa del sitio.
+- El ID de editor está dos veces y hay que cambiarlo junto: `client=ca-pub-…` en ese script y `pub-…` en `ads.txt`.
+- No hay bloques de anuncios en la página ni anuncios automáticos activados. Si se agregan, que no tapen el tablero ni se metan en el arrastre: los anclados y los de pantalla completa molestan al jugar.
+- El juego tiene que seguir funcionando si el script no carga (bloqueadores).
+
 ## Política de privacidad
 
-- `privacidad.html` es una página aparte, estática, enlazada desde Opciones. Dice que el juego solo guarda datos en `localStorage`, sin cookies, publicidad ni medición.
-- Tiene que seguir siendo cierta: si se agrega Analytics, AdSense, otro servicio de terceros o una clave nueva de `localStorage`, actualizarla en el mismo cambio (y la fecha de "Última actualización").
+- `privacidad.html` es una página aparte, estática, enlazada desde Opciones. Dice que el juego solo guarda datos en `localStorage`, sin cookies propias ni medición, y que la publicidad es de Google AdSense (cookies de Google y cómo desactivar la personalización).
+- Tiene que seguir siendo cierta: si se agrega Analytics, otra red de anuncios, otro servicio de terceros o una clave nueva de `localStorage`, actualizarla en el mismo cambio (y la fecha de "Última actualización").
 - Repite los tokens de color y el script de tema del `<head>` de `index.html`: si cambian ahí, cambiarlos también acá.
 
 ## Dibujo
