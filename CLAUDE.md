@@ -6,7 +6,7 @@ Juego web de un puzle por día: llevar la pelota al arco pasando por todos los c
 - Todo el juego vive en `index.html`: HTML, CSS y JS inline, sin dependencias, sin build, sin tests.
 - `privacidad.html` es la política de privacidad (ver más abajo).
 - `ads.txt` autoriza a Google a vender anuncios del sitio (ver "Publicidad").
-- `como-se-juega.html` y `acerca.html` son páginas de texto, estáticas (ver "Páginas de contenido"). `sitemap.xml` lista las cuatro páginas y `robots.txt` apunta al sitemap: agregar ahí cualquier página nueva.
+- `como-se-juega.html`, `estrategia.html` y `acerca.html` son páginas de texto, estáticas (ver "Páginas de contenido"). `sitemap.xml` lista las cinco páginas y `robots.txt` apunta al sitemap: agregar ahí cualquier página nueva.
 - El `meta google-site-verification` del `<head>` de `index.html` verifica el sitio en Google Search Console: si se saca, se pierde la verificación.
 - `og.png` (1200×630) es la imagen de preview de link. Es estática, no hay script que la genere. La actual salió de una captura con Chrome sin interfaz, dibujando un tablero armado a mano con las funciones del juego: la pelota está en la casilla de arriba del arco, que es la única jugada válida para mostrar.
 - `manifest.webmanifest` + `icon-192.png` / `icon-512.png` hacen que Chrome en Android ofrezca "Instalar". No hay service worker a propósito: la app instalada no funciona sin conexión y no hay caché que pueda servir un `index.html` viejo. No agregarlo sin avisar.
@@ -44,7 +44,7 @@ Tablero de `N = 5`, casillas indexadas `0..24` por filas (`fila * N + columna`).
 
 - Movimiento ortogonal a casillas vecinas. No se entra a casillas bloqueadas.
 - El arco mira hacia arriba: solo se entra desde `mouth(E)`, pateando hacia abajo. Desde los costados o desde atrás no patea y aparece un aviso (`wrongSide` / `sideTry()`). La regla está en la entrada (`stepToward`, `pointerdown`, `keydown`), en la validación de `loadSaved` y en el generador: cambiar todo junto.
-- Puntaje: `max(0, 100 − 25 × compañeros que faltan − 10 × cruces)`. Está en `calc()` y también escrito en el modal de ayuda: cambiar los dos.
+- Puntaje: `max(0, 100 − 25 × compañeros que faltan − 10 × cruces)`. Está en `calc()` y también escrito en el modal de ayuda y en el texto "Qué es Gol" de la portada: cambiar todo junto.
 - Se patea llevando la pelota al arco desde la casilla de arriba: arrastrándola hasta ahí, tocando el arco o con la flecha hacia abajo. No hay un toque extra para patear.
 - Arrastrar solo patea si el dedo está sobre el arco (`t === P.E` en `stepToward`). Si el arrastre apunta a una casilla más allá y el arco queda en el medio, se frena antes sin patear.
 - Patear con 100 puntos termina directo. Con menos, pide confirmación (`pending`): "Seguir" saca el arco del recorrido, "Rematar" finaliza. Esa confirmación es la única protección contra un arrastre accidental al arco: no sacarla.
@@ -135,7 +135,7 @@ Puntaje <p>/100 · intento <k>
 - **Colores**: los tokens de modo oscuro están dos veces, en `@media (prefers-color-scheme:dark)` y en `:root[data-theme="dark"]`. `--bg` además está en el `meta theme-color` (el valor inicial y los dos que ponen el script del `<head>` y `setTheme`) y en `background_color` / `theme_color` del manifest.
 - **Ruta del sitio**: `id`, `start_url` y `scope` del manifest (`/`).
 - **Pelota**: `ball()` en el JS, el favicon (SVG inline en el `<link rel="icon">`, misma pelota con radio 14), `og.png` y los íconos de la app (`icon-192.png`, `icon-512.png`: la pelota del favicon sobre la cancha, dentro del 80% central para que el recorte de Android no la corte).
-- **Aspecto del tablero**: si cambian las piezas o los colores de la cancha, `og.png` queda desactualizada y hay que rehacerla a mano (1200×630).
+- **Aspecto del tablero**: si cambian las piezas o los colores de la cancha, `og.png` queda desactualizada y hay que rehacerla a mano (1200×630). Lo mismo los tableros SVG de `estrategia.html`.
 
 ## Opciones y tema
 
@@ -153,18 +153,20 @@ Puntaje <p>/100 · intento <k>
 
 ## Publicidad (AdSense)
 
-- El script de AdSense está en el `<head>` de `index.html`, `como-se-juega.html` y `acerca.html` (no en `privacidad.html`). Es la única dependencia externa del sitio.
+- El script de AdSense está en el `<head>` de `index.html`, `como-se-juega.html`, `estrategia.html` y `acerca.html` (no en `privacidad.html`). Es la única dependencia externa del sitio.
 - El ID de editor hay que cambiarlo junto en todos lados: `client=ca-pub-…` en esos scripts y `pub-…` en `ads.txt`.
 - No hay bloques de anuncios en la página ni anuncios automáticos activados. Si se agregan, que no tapen el tablero ni se metan en el arrastre: los anclados y los de pantalla completa molestan al jugar.
 - El juego tiene que seguir funcionando si el script no carga (bloqueadores).
 
 ## Páginas de contenido
 
-- `como-se-juega.html` (reglas, puntaje, controles, consejos, preguntas frecuentes) y `acerca.html` (qué es, cómo se generan los puzles, contacto). Existen para que el sitio tenga texto visible fuera de los modales, que es lo que mira la revisión de AdSense y lo que indexa Google.
+- `como-se-juega.html` (reglas, puntaje, controles, consejos, preguntas frecuentes), `estrategia.html` (guía para encontrar la jugada perfecta) y `acerca.html` (qué es, cómo se generan los puzles, contacto). Existen para que el sitio tenga texto visible fuera de los modales, que es lo que mira la revisión de AdSense y lo que indexa Google. Por lo mismo, la portada tiene debajo del juego la sección "Qué es Gol" (`.intro`), visible siempre.
 - Están enlazadas desde el `<footer>` de `index.html`, y cada página estática enlaza a las otras desde el suyo.
-- Repiten lo que dice el juego: si cambian las reglas, el puntaje, los controles, las estadísticas, el texto de compartir o los filtros del generador, revisar las dos páginas.
-- No mencionan la dificultad ni cuántas jugadas perfectas hay (solo "al menos una"). Mantenerlo así.
+- Repiten lo que dice el juego: si cambian las reglas, el puntaje, los controles, las estadísticas, el texto de compartir o los filtros del generador, revisar las tres páginas y la sección "Qué es Gol".
+- `estrategia.html` resuelve paso a paso el puzle Nº 7 (6 de octubre de 2026) con tableros SVG estáticos, dibujados con las mismas funciones de piezas del juego (sin club) y pegados en el HTML; no hay script que los genere. Si cambia algo de la lista de "Determinismo", el Nº 7 cambia y la guía deja de corresponder con lo que muestra `?d=2026-10-06`. Necesita el `clipPath#jersey` propio.
+- No mencionan la dificultad ni cuántas jugadas perfectas hay (solo "al menos una"; la guía dice "una jugada perfecta del Nº 7"). Mantenerlo así.
 - Igual que `privacidad.html`, repiten los tokens de color y el script de tema de `index.html`.
+- Si se agrega una página, sumarla al `<footer>` de todas las demás y a `sitemap.xml`.
 
 ## Política de privacidad
 
