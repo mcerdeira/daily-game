@@ -1,6 +1,6 @@
-# Gol · Puzle diario de fútbol
+# Gol · Puzzle diario de fútbol
 
-Juego web de un puzle por día: llevar la pelota al arco pasando por todos los compañeros sin pisar dos veces la misma casilla. Al arco solo se entra de frente, desde la casilla de arriba.
+Juego web de un puzzle por día: llevar la pelota al arco pasando por todos los compañeros sin pisar dos veces la misma casilla. Al arco solo se entra de frente, desde la casilla de arriba.
 
 - Publicado en https://goldiario.com.ar/ (GitHub Pages, repo `mcerdeira/daily-game`, rama `main`).
 - Todo el juego vive en `index.html`: HTML, CSS y JS inline, sin dependencias, sin build, sin tests.
@@ -15,8 +15,8 @@ Juego web de un puzle por día: llevar la pelota al arco pasando por todos los c
 ## Cómo probar
 
 - Abrir `index.html` en el navegador, o `python3 -m http.server` y entrar a `localhost:8000`.
-- `?d=YYYY-MM-DD` fuerza la fecha (puzle, número y dificultad de ese día). Usa las mismas claves de `localStorage` que ese día real.
-- Para repetir el puzle del día hay que borrar `gol1:<fecha>` de `localStorage`.
+- `?d=YYYY-MM-DD` fuerza la fecha (puzzle, número y dificultad de ese día). Usa las mismas claves de `localStorage` que ese día real.
+- Para repetir el puzzle del día hay que borrar `gol1:<fecha>` de `localStorage`.
 
 ## Convenciones
 
@@ -36,7 +36,7 @@ Juego web de un puzle por día: llevar la pelota al arco pasando por todos los c
 | `blocked` / `rocks` | Conos y rivales. Son lo mismo; cuál se dibuja sale de `(c + S + E) % 2` y es solo estético |
 | `path` | Recorrido de la pelota, lista de índices de casilla |
 | `cross` | Cruces: visitas repetidas a una casilla |
-| `P` | Puzle del día |
+| `P` | Puzzle del día |
 
 Tablero de `N = 5`, casillas indexadas `0..24` por filas (`fila * N + columna`). El SVG usa `viewBox="0 0 500 500"`, 100 unidades por casilla.
 
@@ -44,7 +44,7 @@ Tablero de `N = 5`, casillas indexadas `0..24` por filas (`fila * N + columna`).
 
 - Movimiento ortogonal a casillas vecinas. No se entra a casillas bloqueadas.
 - El arco mira hacia arriba: solo se entra desde `mouth(E)`, pateando hacia abajo. Desde los costados o desde atrás no patea y aparece un aviso (`wrongSide` / `sideTry()`). La regla está en la entrada (`stepToward`, `pointerdown`, `keydown`), en la validación de `loadSaved` y en el generador: cambiar todo junto.
-- Puntaje: `max(0, 100 − 25 × compañeros que faltan − 10 × cruces)`. Está en `calc()` y también escrito en el modal de ayuda y en el texto "Qué es Gol" de la portada: cambiar todo junto.
+- Puntaje: `max(0, 100 − 25 × compañeros que faltan − 10 × cruces)`. Está en `calc()` y también escrito en el modal de ayuda y en el texto "¿Qué es Gol?" de la portada: cambiar todo junto.
 - Se patea llevando la pelota al arco desde la casilla de arriba: arrastrándola hasta ahí, tocando el arco o con la flecha hacia abajo. No hay un toque extra para patear.
 - Arrastrar solo patea si el dedo está sobre el arco (`t === P.E` en `stepToward`). Si el arrastre apunta a una casilla más allá y el arco queda en el medio, se frena antes sin patear.
 - Patear con 100 puntos termina directo. Con menos, pide confirmación (`pending`): "Seguir" saca el arco del recorrido, "Rematar" finaliza. Esa confirmación es la única protección contra un arrastre accidental al arco: no sacarla.
@@ -52,7 +52,7 @@ Tablero de `N = 5`, casillas indexadas `0..24` por filas (`fila * N + columna`).
 - "Borrar" reinicia el recorrido y suma un intento (`resets`); el intento se muestra al compartir.
 - Con menos de 100 aparece "Ver la solución", que alterna entre la jugada del usuario y una perfecta (`findPerfect`).
 
-## Generación de puzles
+## Generación de puzzles
 
 `generateWith(seed, d, extraRocks)` recibe la configuración de dificultad `d` (una fila de `LEVELS` o de `OLD_DIFF`), prueba hasta 12000 tableros al azar y devuelve el primero que cumple:
 
@@ -66,26 +66,26 @@ Los filtros 2 a 4 se calculan con el arco como pared y `mouth(E)` como destino (
 
 Si ninguno llega a `minEffort`, devuelve el de mayor `effort` entre los que cumplen 1 a 3. Si no hay ninguno, reintenta con seed `+ '+'` y un cono más.
 
-Solo existe el puzle del día: no hay modo práctica. No agregarlo sin avisar.
+Solo existe el puzzle del día: no hay modo práctica. No agregarlo sin avisar.
 
 ### Dificultad
 
 La dificultad es un tema interno: no se muestra en la interfaz ni en el texto de compartir. Mantenerlo así.
 
-Desde el Nº `ALT_FROM` (10, el 9 de octubre de 2026) los días se alternan entre los dos `LEVELS` según la paridad del número de puzle (`LEVELS[num % 2]`): pares Difícil, impares Experto.
+Desde el Nº `ALT_FROM` (10, el 9 de octubre de 2026) los días se alternan entre los dos `LEVELS` según la paridad del número de puzzle (`LEVELS[num % 2]`): pares Difícil, impares Experto.
 
 | Nivel | Compañeros | Bloqueos | `maxSol` | `minEffort` |
 |---|---|---|---|---|
 | Difícil | 4 | 2 | 1 | 1300 |
 | Experto | 4 | 2 | 1 | 2000 |
 
-Los puzles anteriores (Nº 1 a 9) salían de `OLD_DIFF`, indexada por día de la semana (`0` = domingo, de Fácil a Experto). Se conserva solo para que esas fechas sigan dando el mismo tablero con `?d=`.
+Los puzzles anteriores (Nº 1 a 9) salían de `OLD_DIFF`, indexada por día de la semana (`0` = domingo, de Fácil a Experto). Se conserva solo para que esas fechas sigan dando el mismo tablero con `?d=`.
 
 La generación corre sincrónica al cargar la página. Si se suben los topes o la dificultad, medir el tiempo de carga en celular. Con estos valores, en escritorio tarda hasta unos 170 ms; el Difícil llega a su `minEffort` en unos dos de cada tres días y el Experto en uno de cada tres, y el resto usa el mejor tablero encontrado (el `effort` tiene tope 3000, así que subir `minEffort` más allá de 2000 casi no cambia nada).
 
 ### Determinismo (importante)
 
-El puzle del día sale de la seed `'gol-v1-' + dateKey` con `hashStr` + `mulberry32`. Todos los jugadores tienen que ver el mismo tablero, así que cualquier cambio en lo siguiente cambia los puzles de todas las fechas:
+El puzzle del día sale de la seed `'gol-v1-' + dateKey` con `hashStr` + `mulberry32`. Todos los jugadores tienen que ver el mismo tablero, así que cualquier cambio en lo siguiente cambia los puzzles de todas las fechas:
 
 - `LEVELS`, `ALT_FROM`, `OLD_DIFF`, los filtros de `generateWith` o el orden en que se consume el `rng`.
 - `mouth`, `goalWalls` (la regla del arco).
@@ -96,14 +96,14 @@ Un cambio así a mitad del día le cambia el tablero a quien ya jugó: el progre
 
 ## Fecha y numeración
 
-- La fecha es la local del dispositivo, no UTC. El puzle cambia a la medianoche local.
+- La fecha es la local del dispositivo, no UTC. El puzzle cambia a la medianoche local.
 - `dayNumber`: el Nº 1 es el 30 de septiembre de 2026 (`Date.UTC(2026, 8, 30)`). No mover esa fecha.
 
 ## Persistencia (`localStorage`)
 
 | Clave | Contenido |
 |---|---|
-| `gol1:YYYY-MM-DD` | `{ path, resets, done }` del puzle de ese día |
+| `gol1:YYYY-MM-DD` | `{ path, resets, done }` del puzzle de ese día |
 | `gol1:stats` | `{ played, perfect, streak, last }` |
 | `gol1:seen` | `1` cuando ya se cerró la ayuda una vez |
 | `gol1:theme` | `"dark"` o `"light"`, el tema elegido en Opciones |
@@ -160,10 +160,10 @@ Puntaje <p>/100 · intento <k>
 
 ## Páginas de contenido
 
-- `como-se-juega.html` (reglas, puntaje, controles, consejos, preguntas frecuentes), `estrategia.html` (guía para encontrar la jugada perfecta) y `acerca.html` (qué es, cómo se generan los puzles, contacto). Existen para que el sitio tenga texto visible fuera de los modales, que es lo que mira la revisión de AdSense y lo que indexa Google. Por lo mismo, la portada tiene debajo del juego la sección "Qué es Gol" (`.intro`), visible siempre.
+- `como-se-juega.html` (reglas, puntaje, controles, consejos, preguntas frecuentes), `estrategia.html` (guía para encontrar la jugada perfecta) y `acerca.html` (qué es, cómo se generan los puzzles, contacto). Existen para que el sitio tenga texto visible fuera de los modales, que es lo que mira la revisión de AdSense y lo que indexa Google. Por lo mismo, la portada tiene debajo del juego la sección "¿Qué es Gol?" (`.intro`), visible siempre.
 - Están enlazadas desde el `<footer>` de `index.html`, y cada página estática enlaza a las otras desde el suyo.
-- Repiten lo que dice el juego: si cambian las reglas, el puntaje, los controles, las estadísticas, el texto de compartir o los filtros del generador, revisar las tres páginas y la sección "Qué es Gol".
-- `estrategia.html` resuelve paso a paso el puzle Nº 7 (6 de octubre de 2026) con tableros SVG estáticos, dibujados con las mismas funciones de piezas del juego (sin club) y pegados en el HTML; no hay script que los genere. Si cambia algo de la lista de "Determinismo", el Nº 7 cambia y la guía deja de corresponder con lo que muestra `?d=2026-10-06`. Necesita el `clipPath#jersey` propio.
+- Repiten lo que dice el juego: si cambian las reglas, el puntaje, los controles, las estadísticas, el texto de compartir o los filtros del generador, revisar las tres páginas y la sección "¿Qué es Gol?".
+- `estrategia.html` resuelve paso a paso el puzzle Nº 7 (6 de octubre de 2026) con tableros SVG estáticos, dibujados con las mismas funciones de piezas del juego (sin club) y pegados en el HTML; no hay script que los genere. Si cambia algo de la lista de "Determinismo", el Nº 7 cambia y la guía deja de corresponder con lo que muestra `?d=2026-10-06`. Necesita el `clipPath#jersey` propio.
 - No mencionan la dificultad ni cuántas jugadas perfectas hay (solo "al menos una"; la guía dice "una jugada perfecta del Nº 7"). Mantenerlo así.
 - Igual que `privacidad.html`, repiten los tokens de color y el script de tema de `index.html`.
 - Si se agrega una página, sumarla al `<footer>` de todas las demás y a `sitemap.xml`.
@@ -184,7 +184,7 @@ Puntaje <p>/100 · intento <k>
 
 ## Festejo del gol
 
-Se dispara en `finalize()`, o sea en cada remate definitivo (con cualquier puntaje). No se repite al recargar un puzle ya terminado.
+Se dispara en `finalize()`, o sea en cada remate definitivo (con cualquier puntaje). No se repite al recargar un puzzle ya terminado.
 
 - **Papelitos y grito**: `celebrate()` agrega a `<body>` una capa `#cheer` (`position:fixed`, `pointer-events:none`, `aria-hidden`) con un `<canvas>` de papelitos y la palabra `GOOOOOOOOL!`, una `<span>` por letra con `--i` para escalonar las animaciones `cheer-pop` y `cheer-bob`. La capa se elimina sola a los 3,6 s (`LIFE`).
 - **Arco**: la variable `kick` queda en `true` por 900 ms después del remate; mientras tanto `render()` envuelve el arco y la pelota en `<g class="kick">`, que tiene la animación CSS `kick`.
