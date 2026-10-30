@@ -1,0 +1,3 @@
+Comentarios opcionales para el archivo. Un archivo por día: AAAA-MM-DD.txt (por ejemplo 2026-10-28.txt).
+El texto aparece en la página de ese día, en la sección "Comentario". Separá los párrafos con una línea en blanco.
+Se publica en la próxima corrida diaria (o corriendo node scripts/archivo.mjs).

@@ -1,0 +1,26 @@
+# Adds the solution of each finished day to archivo/ and updates the sitemap.
+# Runs at 12:00 UTC, when the previous day is over in every time zone.
+name: archivo
+on:
+  schedule:
+    - cron: '0 12 * * *'
+  workflow_dispatch:
+permissions:
+  contents: write
+concurrency: archivo
+jobs:
+  archivo:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      - run: node scripts/archivo.mjs
+      - run: |
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add archivo sitemap.xml
+          if git diff --cached --quiet; then echo 'sin cambios'; exit 0; fi
+          git commit -m 'archivo del día'
+          git push

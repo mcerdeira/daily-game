@@ -6,7 +6,9 @@ Juego web de un puzzle por día: llevar la pelota al arco pasando por todos los 
 - Todo el juego vive en `index.html`: HTML, CSS y JS inline, sin dependencias, sin build, sin tests.
 - `privacidad.html` es la política de privacidad (ver más abajo).
 - `ads.txt` autoriza a Google a vender anuncios del sitio (ver "Publicidad").
-- `como-se-juega.html`, `estrategia.html` y `acerca.html` son páginas de texto, estáticas (ver "Páginas de contenido"). `sitemap.xml` lista las cinco páginas y `robots.txt` apunta al sitemap: agregar ahí cualquier página nueva.
+- `como-se-juega.html`, `estrategia.html` y `acerca.html` son páginas de texto, estáticas (ver "Páginas de contenido").
+- `archivo/` tiene la solución de cada día ya terminado, generada sola (ver "Archivo").
+- `sitemap.xml` lo escribe `scripts/archivo.mjs` (no editarlo a mano): una página nueva se agrega a `STATIC` en ese script. `robots.txt` apunta al sitemap.
 - El `meta google-site-verification` del `<head>` de `index.html` verifica el sitio en Google Search Console: si se saca, se pierde la verificación.
 - `og.png` (1200×630) es la imagen de preview de link. Es estática, no hay script que la genere. La actual salió de una captura con Chrome sin interfaz, dibujando un tablero armado a mano con las funciones del juego: la pelota está en la casilla de arriba del arco, que es la única jugada válida para mostrar.
 - `manifest.webmanifest` + `icon-192.png` / `icon-512.png` hacen que Chrome en Android ofrezca "Instalar". No hay service worker a propósito: la app instalada no funciona sin conexión y no hay caché que pueda servir un `index.html` viejo. No agregarlo sin avisar.
@@ -66,7 +68,7 @@ Los filtros 2 a 4 se calculan con el arco como pared y `mouth(E)` como destino (
 
 Si ninguno llega a `minEffort`, devuelve el de mayor `effort` entre los que cumplen 1 a 3. Si no hay ninguno, reintenta con seed `+ '+'` y un cono más.
 
-Solo existe el puzzle del día: no hay modo práctica. No agregarlo sin avisar.
+Solo existe el puzzle del día: no hay modo práctica. No agregarlo sin avisar. El archivo de soluciones es solo de lectura: no se juega.
 
 ### Dificultad
 
@@ -166,7 +168,18 @@ Puntaje <p>/100 · intento <k>
 - `estrategia.html` resuelve paso a paso el puzzle Nº 7 (6 de octubre de 2026) con tableros SVG estáticos, dibujados con las mismas funciones de piezas del juego (sin club) y pegados en el HTML; no hay script que los genere. Si cambia algo de la lista de "Determinismo", el Nº 7 cambia y la guía deja de corresponder con lo que muestra `?d=2026-10-06`. Necesita el `clipPath#jersey` propio.
 - No mencionan la dificultad ni cuántas jugadas perfectas hay (solo "al menos una"; la guía dice "una jugada perfecta del Nº 7"). Mantenerlo así.
 - Igual que `privacidad.html`, repiten los tokens de color y el script de tema de `index.html`.
-- Si se agrega una página, sumarla al `<footer>` de todas las demás y a `sitemap.xml`.
+- Si se agrega una página, sumarla al `<footer>` de todas las demás (también al de `shell()` en `scripts/archivo.mjs`) y a `STATIC` en ese script.
+
+## Archivo
+
+- `scripts/archivo.mjs` (Node, sin dependencias) escribe `archivo/AAAA-MM-DD.html` para cada día desde el Nº 1 hasta el último que ya terminó en todos los husos horarios, `archivo/index.html` y `sitemap.xml`. Regenera todo en cada corrida.
+- Lo corre todos los días a las 12:00 UTC `.github/workflows/archivo.yml`, que commitea y pushea si hubo cambios. También se puede correr a mano desde la pestaña Actions o con `node scripts/archivo.mjs` (`--hasta AAAA-MM-DD` para fijar el último día).
+- No copia el generador: saca de `index.html` el bloque que va de `const SITE_URL` al `(function () {` y las piezas de dibujo entre `const ctr = c =>` y `function render()`. Si se mueven esos marcadores, el script falla con un error. Los tokens de color, el script de tema y el de AdSense los toma de `estrategia.html`.
+- Cada página tiene el tablero, el camino corto con cruces (`shortcut`), dónde falla ir al compañero más cercano (`nearestTrap`), los pasos de una jugada perfecta y algunos números. Los textos varían según la fecha con `pick`, que es determinístico.
+- Comentarios a mano opcionales: `archivo/_notas/AAAA-MM-DD.txt` (párrafos separados por línea en blanco) aparece como sección "Comentario". La carpeta empieza con `_` para que Jekyll no la publique.
+- El puzzle del día nunca aparece en el archivo antes de terminar: no adelantar la publicación.
+- Si cambia algo de la lista de "Determinismo", la próxima corrida reescribe todas las páginas con los tableros nuevos.
+- Como las páginas de contenido, no menciona la dificultad ni cuántas jugadas perfectas hay ("una jugada perfecta").
 
 ## Política de privacidad
 
